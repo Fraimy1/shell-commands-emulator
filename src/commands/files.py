@@ -6,38 +6,35 @@ ls, cat, cp, mv, rm - here
 from pathlib import Path
 from src.config import ROOT, HOME_DIR
 from datetime import datetime
-from src.core.models import ParsedCommand
-from src.core.services import Context
+from src.commands.base import Command
 
-def ls(directory = Path.cwd(),long: bool = False):
-    path = Path(directory).resolve()
-    for entry in path.iterdir():
-        if long:
-            info = entry.stat()
-            print(info)
-        else:        
-            print(entry.name)
-    return True
+class Ls(Command):
+    def execute(self, cmd, ctx):
+        directory = Path(cmd.positionals[0]).resolve() if cmd.positionals else ctx.cwd
+        long = ('-l' in cmd.flags) or ('--long' in cmd.flags)
+        for entry in directory.iterdir():
+            if long:
+                info = entry.stat()
+                print(info)
+            else:        
+                print(entry.name)
 
-def call_ls(cmd: ParsedCommand, ctx: Context):
-    directory = Path(cmd.positionals[0]) if cmd.positionals else ctx.cwd
-    long = ('-l' in cmd.flags) or ('--long' in cmd.flags)
-    ls(directory, long)
+class Cp(Command):
+    def execute(self, cmd, ctx):
+        return super().execute(cmd, ctx)
 
+class Cat(Command):
+    def execute(self, cmd, ctx):
+        return super().execute(cmd, ctx)
 
-def cp():
-    ...
+class Mv(Command):
+    def execute(self, cmd, ctx):
+        return super().execute(cmd, ctx)
 
-def cat():
-    ...
-
-def mv():
-    ...
-
-def rm():
-    ...
-
+class Rm(Command):
+    def execute(self, cmd, ctx):
+        return super().execute(cmd, ctx)
 
 
 if __name__ == "__main__":
-    ls(long=False)
+    ...

@@ -1,16 +1,16 @@
-from src.commands.files import call_ls, cp, mv, rm, cat
-from src.commands.navigation import cd
+from src.commands.files import Ls, Cat, Cp, Mv, Rm
+from src.commands.navigation import Cd
 from src.core.models import ParsedCommand
 from src.core.errors import ExecutionError
 from src.core.services import Context
 
 COMMANDS = {
-    "ls": call_ls,
-    "cd": cd,
-    "cat": cat,
-    "cp": cp,
-    "mv": mv,
-    "rm": rm,
+    "ls": Ls().execute,
+    "cd": Cd().execute,
+    "cat": Cat().execute,
+    "cp": Cp().execute,
+    "mv": Mv().execute,
+    "rm": Rm().execute,
 }
 
 class Dispatcher:

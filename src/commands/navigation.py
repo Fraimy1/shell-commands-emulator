@@ -1,4 +1,3 @@
-from pathlib import Path
 from src.core.errors import ExecutionError
 from src.commands.base import Command
 from src.config import HOME_DIR

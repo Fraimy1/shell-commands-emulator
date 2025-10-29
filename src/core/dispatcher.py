@@ -1,8 +1,10 @@
 from src.commands.files import call_ls, cp, mv, rm, cat
 from src.commands.navigation import cd
 from src.core.models import ParsedCommand
+from src.core.errors import ExecutionError
+from src.core.services import Context
 
-COMMAND_HANDLERS = {
+COMMANDS = {
     "ls": call_ls,
     "cd": cd,
     "cat": cat,
@@ -11,14 +13,14 @@ COMMAND_HANDLERS = {
     "rm": rm,
 }
 
-def dispatch_command(cmd: ParsedCommand):
-    handler = COMMAND_HANDLERS.get(cmd.name)
+class Dispatcher:
+    @staticmethod
+    def dispatch_command(cmd: ParsedCommand, ctx: Context):
 
-    if handler is None:
-        print(f"Unknown command: {cmd.name}")
-        return
-
-    try:
-        handler(cmd)  # pass the rest of the args
-    except Exception as e:
-        print(f"Error executing {cmd.name}: {e}")
+        handler = COMMANDS[cmd.name]
+        
+        try:
+            handler(cmd, ctx)
+            ctx.history.append(cmd)
+        except Exception as e:
+            raise ExecutionError(f"Error executing {cmd.name}: {e}")

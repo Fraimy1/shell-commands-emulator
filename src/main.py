@@ -1,7 +1,9 @@
-from src.shell import start_shell
+from src.shell import Shell
+
+shell = Shell()
 
 def main():
-    start_shell()
+    shell.start_shell()
 
 
 if __name__ == '__main__':

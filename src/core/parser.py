@@ -1,12 +1,10 @@
 import re
 from src.config import COMMANDS
 from src.core.models import ParsedCommand
+from src.core.errors import ParsingError
 TOKEN_PATTERN = r"--\w+|-\w+|\w+|'\w+'"
 
 PATTERN = re.compile(TOKEN_PATTERN)
-
-class ParserError(Exception):
-    pass
 
 class Parser: 
     @staticmethod
@@ -17,26 +15,25 @@ class Parser:
     def tokenize(self, string:str):
         words = self.parse_command(string)
         if not words:
-            raise ParserError("Empty command")
+            raise ParsingError("Empty command")
         
-        name = words.pop()
+        name = words.pop(0)
         spec = COMMANDS.get(name)
         
         if not spec:
-            raise ParserError(f"Command '{name}' is not supported")
+            raise ParsingError(f"Command '{name}' is not supported")
         
         flags, pos = set(), []
-        for i, word in enumerate(words):
-            if word.startswith('--') or word.startswith('-'):
-                if word not in spec['flags']:
-                    raise ParserError(f"No flag '{word}' for '{name}'")
-                flags.add(word)
+        for w in words:
+            if w.startswith('--') or w.startswith('-'):
+                if w not in spec['flags']:
+                    raise ParsingError(f"No flag '{w}' for '{name}'")
+                flags.add(w)
             else:
-                word = word.strip("'")
-                if word.isdigit():
-                    word = int(word)
-                
-                pos.append(word)
+                w = w.strip("'")
+                if w.isdigit():
+                    w = int(w)    
+                pos.append(w)
         
         return ParsedCommand(name=name, flags=flags, positionals=pos)
 

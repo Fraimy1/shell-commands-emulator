@@ -19,19 +19,19 @@ class Ls(Command):
         for entry in directory.iterdir():
             if long:
                 info = entry.stat()
-                mode = stat.filemode(info.st_mode)
+                permissions = stat.filemode(info.st_mode)[1:]
                 size = info.st_size
-                last_modified = datetime.fromtimestamp(info.st_mtime)
-                file_created = datetime.fromtimestamp(info.st_birthtime)
+                last_modified = datetime.fromtimestamp(info.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+                file_created = datetime.fromtimestamp(info.st_birthtime).strftime("%Y-%m-%d %H:%M:%S")
                 is_dir = entry.is_dir()
                 links = info.st_nlink
                 name = entry.name + ' (DIR)' if is_dir else entry.name
-                data.append((name, mode, links, size, last_modified, file_created))
+                data.append((name, permissions, links, size, last_modified, file_created))
             else:
                 print(entry.name)
 
         if long: 
-            headers = ['Name', 'Mode', 'Links', 'Size', 
+            headers = ['Name', 'Perms', 'Links', 'Size', 
                        'Modified', 'Created']
             print(tabulate(data, headers=headers, tablefmt='plain'))
 

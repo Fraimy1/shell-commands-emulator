@@ -9,7 +9,7 @@ class Shell:
         self.parser = Parser()
         self.validator = Validator()
         self.ctx = Context()
-        self.dispatcher = Dispatcher
+        self.dispatcher = Dispatcher()
 
     def start_shell(self):
         print(USER_WELCOME_MESSAGE)

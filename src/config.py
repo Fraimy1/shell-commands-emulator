@@ -12,7 +12,7 @@ USER_GOODBYE_MESSAGE = ""
 
 COMMANDS = {
     'cp': {'flags': {'--recursive', '-r'}, 'max_pos': 2, 'min_pos': 2},
-    'mv': {'flags': set(), 'max_pos': 2, 'min_pos': 2},
+    'mv': {'flags': {'--recursive','-r'}, 'max_pos': 2, 'min_pos': 2},
     'rm': {'flags': {'--recursive', '-r',}, 'max_pos': 1, 'min_pos': 1},
     'ls': {'flags': {'-l', '--long'}, 'max_pos': 1, 'min_pos': 0},
     'cd': {'flags': set(), 'max_pos': 1, 'min_pos': 1},

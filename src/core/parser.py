@@ -2,7 +2,7 @@ import re
 from src.config import COMMANDS
 from src.core.models import ParsedCommand
 from src.core.errors import ParsingError
-TOKEN_PATTERN = r"--\w+|-\w+|\w+|'\w+'"
+TOKEN_PATTERN = r"--?\w+|'[^']*'|\S+"
 
 PATTERN = re.compile(TOKEN_PATTERN)
 
@@ -30,10 +30,7 @@ class Parser:
                     raise ParsingError(f"No flag '{w}' for '{name}'")
                 flags.add(w)
             else:
-                w = w.strip("'")
-                if w.isdigit():
-                    w = int(w)    
-                pos.append(w)
+                pos.append(w.strip("'"))
         
         return ParsedCommand(name=name, flags=flags, positionals=pos)
 

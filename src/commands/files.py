@@ -4,7 +4,6 @@ ls, cat, cp, mv, rm - here
 """
 
 from pathlib import Path
-from src.config import ROOT, HOME_DIR
 from src.core.errors import ExecutionError
 from datetime import datetime
 from src.commands.base import Command
@@ -73,7 +72,25 @@ class Cat(Command):
 
 class Mv(Command):
     def execute(self, cmd, ctx):
-        return super().execute(cmd, ctx)
+        move_from = resolve_path(cmd.positionals[0], ctx)
+        move_to = resolve_path(cmd.positionals[1], ctx)
+
+        if move_to.is_dir() and move_from.name != move_to.name and not move_from.is_dir():
+            move_to = move_to / move_from.name
+
+        if (move_from.is_dir() 
+            and not ('-r' in cmd.flags or '--recursive' in cmd.flags)
+            and any(move_from.iterdir())
+            ):
+            raise ExecutionError("Unable to move non-empty directories without '--recursive' tag.")
+        
+        if not move_from.exists():
+            raise ExecutionError(f"File doesn't exist. ({move_from})")
+        try:
+            move_from.move(move_to)
+        except Exception as e:
+            raise ExecutionError(f'Error during moving from {move_from.name} to {move_to.name}: {e}')
+         
 
 class Rm(Command):
     def execute(self, cmd, ctx):

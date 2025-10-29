@@ -2,8 +2,6 @@ from src.core.models import ParsedCommand
 from src.config import COMMANDS
 from src.core.errors import ParsingError, ValidationError
 
-
-
 class Validator:
     def validate_cmd(self, cmd: ParsedCommand):
         spec = COMMANDS.get(cmd.name)

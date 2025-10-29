@@ -1,6 +1,5 @@
 from src.config import USER_WELCOME_MESSAGE, USER_GOODBYE_MESSAGE
 from src.core.parser import Parser
-from pathlib import Path
 from src.core.dispatcher import Dispatcher
 from src.core.validator import Validator
 from src.core.services import Context

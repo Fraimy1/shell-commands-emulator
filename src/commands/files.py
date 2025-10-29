@@ -10,6 +10,7 @@ from src.commands.base import Command
 from tabulate import tabulate
 from src.utils.path_utils import resolve_path
 import stat
+import shutil
 
 class Ls(Command):
     def execute(self, cmd, ctx):
@@ -94,7 +95,34 @@ class Mv(Command):
 
 class Rm(Command):
     def execute(self, cmd, ctx):
-        return super().execute(cmd, ctx)
+        target = resolve_path(cmd.positionals[0], ctx)
+    
+        if (target.is_dir() 
+            and not ('-r' in cmd.flags or '--recursive' in cmd.flags)
+            and any(target.iterdir())
+            ):
+            raise ExecutionError("Unable to remove non-empty directories without '--recursive' tag.")
+        
+        if not target.exists():
+            raise ExecutionError(f"File doesn't exist. ({target})")
+
+        agreed = None
+        while agreed is None:
+            user_input = input(f"Are you sure you want to delete {target.name}? Y/n: ")
+            if user_input == 'Y':
+                agreed = True
+            elif user_input.lower() == 'n': 
+                agreed = False 
+                return False
+        try: 
+            if target.is_file():
+                target.unlink()
+            elif target.is_dir() and not ('-r' in cmd.flags or '--recursive' in cmd.flags):
+                target.rmdir()
+            else:
+                shutil.rmtree(target)
+        except PermissionError: 
+            raise ExecutionError(f"No permission to remove {target.name}")
 
 
 if __name__ == "__main__":

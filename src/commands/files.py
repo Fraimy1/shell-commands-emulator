@@ -5,6 +5,7 @@ ls, cat, cp, mv, rm - here
 
 from pathlib import Path
 from src.config import ROOT, HOME_DIR
+from src.core.errors import ExecutionError
 from datetime import datetime
 from src.commands.base import Command
 from tabulate import tabulate
@@ -41,7 +42,23 @@ class Cp(Command):
 
 class Cat(Command):
     def execute(self, cmd, ctx):
-        return super().execute(cmd, ctx)
+        raw_target = Path(cmd.positionals[0])
+        if raw_target.is_absolute():
+            target = raw_target.resolve()
+        else:
+            target = (ctx.cwd / raw_target).expanduser().resolve() 
+        
+        if target.is_dir():
+            raise ExecutionError(f"cat doesn't support dirrectories. ({target.name})")
+
+        if not(target.exists()):
+            raise ExecutionError(f"file doesn't exist. ({target})")
+        
+        try:
+            with open(target, 'r') as f:
+                print(f.read())
+        except Exception:
+            raise ExecutionError(f"cat can't read this file. ({target})")
 
 class Mv(Command):
     def execute(self, cmd, ctx):

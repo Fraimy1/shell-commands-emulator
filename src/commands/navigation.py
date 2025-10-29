@@ -1,9 +1,15 @@
 from pathlib import Path
 from src.core.errors import ExecutionError
 from src.commands.base import Command
+from src.config import HOME_DIR
 
 class Cd(Command):
     def execute(self, cmd, ctx):
+
+        if cmd.positionals[0] == '~':
+            ctx.cwd = HOME_DIR
+            return True
+
         raw_target = Path(cmd.positionals[0])
 
         if raw_target.is_absolute():

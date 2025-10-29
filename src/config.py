@@ -16,6 +16,7 @@ COMMANDS = {
     'rm': {'flags': {'--recursive',}, 'max_pos': 1, 'min_pos': 1},
     'ls': {'flags': {'-l', '--long'}, 'max_pos': 1, 'min_pos': 0},
     'cd': {'flags': set(), 'max_pos': 1, 'min_pos': 1},
+    'cat': {'flags': set(), 'max_pos': 1, 'min_pos': 1},
 }
 if __name__ == "__main__":
     print(ROOT)

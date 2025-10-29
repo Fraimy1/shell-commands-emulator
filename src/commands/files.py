@@ -9,11 +9,12 @@ from src.core.errors import ExecutionError
 from datetime import datetime
 from src.commands.base import Command
 from tabulate import tabulate
+from src.utils.path_utils import resolve_path
 import stat
 
 class Ls(Command):
     def execute(self, cmd, ctx):
-        directory = Path(cmd.positionals[0]).resolve() if cmd.positionals else ctx.cwd
+        directory = resolve_path(cmd.positionals[0], ctx) if cmd.positionals else ctx.cwd
         long = ('-l' in cmd.flags) or ('--long' in cmd.flags)
         
         data = []
@@ -38,16 +39,26 @@ class Ls(Command):
 
 class Cp(Command):
     def execute(self, cmd, ctx):
-        return super().execute(cmd, ctx)
-
+        copy_from = resolve_path(cmd.positionals[0], ctx)
+        copy_to = resolve_path(cmd.positionals[1], ctx)
+        if (copy_from.is_dir() 
+            and not ('-r' in cmd.flags or '--recursive' in cmd.flags)
+            and any(copy_from.iterdir())
+            ):
+            raise ExecutionError("Unable to copy non-empty directories without '--recursive' tag.")
+        
+        if not copy_from.exists():
+            raise ExecutionError(f"File doesn't exist. ({copy_from})")
+        
+        try:
+            copy_from.copy(copy_to)
+        except Exception as e:
+            raise ExecutionError(f'Error during copying from {copy_from.name} to {copy_to.name}: {e}')
+        
 class Cat(Command):
     def execute(self, cmd, ctx):
-        raw_target = Path(cmd.positionals[0])
-        if raw_target.is_absolute():
-            target = raw_target.resolve()
-        else:
-            target = (ctx.cwd / raw_target).expanduser().resolve() 
-        
+        target = resolve_path(cmd.positionals[0], ctx)
+
         if target.is_dir():
             raise ExecutionError(f"cat doesn't support dirrectories. ({target.name})")
 

@@ -1,4 +1,5 @@
-from src.commands.files import Ls, Cat, Cp, Mv, Rm
+from src.commands.files import Ls, Cat, Cp, Mv, Rm, Zip, Unzip
+from src.commands.files import Tar, Untar, History, Undo
 from src.commands.navigation import Cd
 from src.core.models import ParsedCommand
 from src.core.errors import ExecutionError
@@ -11,6 +12,12 @@ COMMANDS = {
     "cp": Cp().execute,
     "mv": Mv().execute,
     "rm": Rm().execute,
+    "zip": Zip().execute,
+    "unzip": Unzip().execute,
+    "tar": Tar().execute,
+    "untar": Untar().execute,
+    "history": History().execute,
+    "undo": Undo().execute
 }
 
 class Dispatcher:

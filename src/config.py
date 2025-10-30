@@ -17,6 +17,14 @@ COMMANDS = {
     'ls': {'flags': {'-l', '--long'}, 'max_pos': 1, 'min_pos': 0},
     'cd': {'flags': set(), 'max_pos': 1, 'min_pos': 1},
     'cat': {'flags': set(), 'max_pos': 1, 'min_pos': 1},
+
+    'zip': {'flags': set(), 'max_pos': 2, 'min_pos': 2},
+    'unzip': {'flags': set(), 'max_pos': 1, 'min_pos': 1},
+    'tar': {'flags': set(), 'max_pos': 2, 'min_pos': 2},
+    'untar': {'flags': set(), 'max_pos': 1, 'min_pos': 1},
+    'grep': {'flags': {'-r', '--recursive', '-i'}, 'max_pos': 2, 'min_pos': 2},
+    'history': {'flags': set(), 'max_pos': 1, 'min_pos': 1},
+    'undo': {'flags': set(), 'max_pos': 1, 'min_pos': 1},
 }
 if __name__ == "__main__":
     print(ROOT)

@@ -11,8 +11,10 @@ from tabulate import tabulate
 from src.utils.path_utils import resolve_path
 import stat
 import shutil
-from zipfile import Zipfile
+import zipfile
+from zipfile import ZipFile
 import tarfile
+
 
 class Ls(Command):
     def execute(self, cmd, ctx):
@@ -39,6 +41,7 @@ class Ls(Command):
                        'Modified', 'Created']
             print(tabulate(data, headers=headers, tablefmt='plain'))
 
+
 class Cp(Command):
     def execute(self, cmd, ctx):
         copy_from = resolve_path(cmd.positionals[0], ctx)
@@ -57,6 +60,7 @@ class Cp(Command):
         except Exception as e:
             raise ExecutionError(f'Error during copying from {copy_from.name} to {copy_to.name}: {e}')
         
+
 class Cat(Command):
     def execute(self, cmd, ctx):
         target = resolve_path(cmd.positionals[0], ctx)
@@ -72,6 +76,7 @@ class Cat(Command):
                 print(f.read())
         except Exception:
             raise ExecutionError(f"cat can't read this file. ({target})")
+
 
 class Mv(Command):
     def execute(self, cmd, ctx):
@@ -94,6 +99,7 @@ class Mv(Command):
         except Exception as e:
             raise ExecutionError(f'Error during moving from {move_from.name} to {move_to.name}: {e}')
          
+
 
 class Rm(Command):
     def execute(self, cmd, ctx):
@@ -126,33 +132,116 @@ class Rm(Command):
         except PermissionError: 
             raise ExecutionError(f"No permission to remove {target.name}")
 
+
 class Zip(Command):
     def execute(self, cmd, ctx):
-        return super().execute(cmd, ctx)
+        src = resolve_path(cmd.positionals[0], ctx)
+        dest_zip = resolve_path(cmd.positionals[1], ctx)
+
+        if not src.is_dir():
+            raise ExecutionError(f"{src} must be a directory")
+
+        if not dest_zip.name.endswith('.zip'):
+            raise ExecutionError(f"Destination must be a .zip file. But got {dest_zip.name}")
+
+        if not src.exists():
+            raise ExecutionError(f"File doesn't exist. ({src})")
+        
+        try:
+            self.zip_dir(src, dest_zip) 
+        except Exception as e:
+            raise ExecutionError(f'Error zipping the folder {src.name} into {dest_zip.name}: {e}')
+    
+    @staticmethod
+    def zip_dir(folder: Path, dest_zip: Path):
+        with ZipFile(dest_zip, 'w', compression=zipfile.ZIP_DEFLATED) as zipf:
+            for file in folder.rglob('*'):
+                zipf.write(file, arcname=file.relative_to(folder))        
+
 
 class Unzip(Command):
     def execute(self, cmd, ctx):
-        return super().execute(cmd, ctx)
+        src = resolve_path(cmd.positionals[0], ctx)
+        dest_dir = ctx.cwd / src.name.replace('.zip', '')
+
+        if not src.name.endswith('.zip'):
+            raise ExecutionError(f"Source must be a .zip file. But got {src.name}")
+
+        if not src.exists():
+            raise ExecutionError(f"File doesn't exist. ({src})")
+        
+        try:
+            self.unzip_dir(src, dest_dir) 
+        except Exception as e:
+            raise ExecutionError(f'Error unzipping the file {src.name} into {dest_dir.name}: {e}')
+    
+    @staticmethod
+    def unzip_dir(zipfile: Path, dest_dir: Path):
+        with ZipFile(zipfile, 'r') as zipf:
+            zipf.extractall(dest_dir)
+
 
 class Tar(Command):
     def execute(self, cmd, ctx):
-        return super().execute(cmd, ctx)
+        src = resolve_path(cmd.positionals[0], ctx)
+        dest_tar = resolve_path(cmd.positionals[1], ctx)
+
+        if not src.is_dir():
+            raise ExecutionError(f"{src} must be a directory")
+
+        if not dest_tar.name.endswith('.tar'):
+            raise ExecutionError(f"Destination must be a .tar file. But got {dest_tar.name}")
+
+        if not src.exists():
+            raise ExecutionError(f"File doesn't exist. ({src})")
+        
+        try:
+            self.tar_dir(src, dest_tar) 
+        except Exception as e:
+            raise ExecutionError(f'Error tarring the folder {src.name} into {dest_tar.name}: {e}')
+            
+    @staticmethod
+    def tar_dir(folder: Path, dest_tar: Path):
+        with tarfile.open(dest_tar, 'w:gz') as tarf:
+            tarf.add(folder, arcname=folder.name)
+
 
 class Untar(Command):
     def execute(self, cmd, ctx):
-        return super().execute(cmd, ctx)
+        src = resolve_path(cmd.positionals[0], ctx)
+        dest_dir = ctx.cwd
+
+        if not src.name.endswith('.tar'):
+            raise ExecutionError(f"Source must be a .tar file. But got {src.name}")
+
+        if not src.exists():
+            raise ExecutionError(f"File doesn't exist. ({src})")
+        
+        try:
+            self.untar_dir(src, dest_dir) 
+        except Exception as e:
+            raise ExecutionError(f'Error untarring the file {src.name} into {dest_dir.name}: {e}')
+    
+    @staticmethod
+    def untar_dir(src_tar: Path, dest_dir: Path):
+        with tarfile.open(src_tar, 'r:*') as tarf:
+            tarf.extractall(path=dest_dir)
+
 
 class Grep(Command):
     def execute(self, cmd, ctx):
         return super().execute(cmd, ctx)
 
+
 class History(Command):
     def execute(self, cmd, ctx):
         return super().execute(cmd, ctx)
     
+
 class Undo(Command):
     def execute(self, cmd, ctx):
         return super().execute(cmd, ctx)
+
 
 if __name__ == "__main__":
     ...

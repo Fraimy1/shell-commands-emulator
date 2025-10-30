@@ -3,17 +3,23 @@ Docstring for commands.files
 ls, cat, cp, mv, rm - here
 """
 
+from os import path
 from pathlib import Path
-from src.core.errors import ExecutionError
 from datetime import datetime
-from src.commands.base import Command
 from tabulate import tabulate
+from colorama import Fore, Style
+
+from src.core.errors import ExecutionError
+from src.commands.base import Command
 from src.utils.path_utils import resolve_path
+from src.utils.misc_utils import has_flag
+
 import stat
 import shutil
 import zipfile
 from zipfile import ZipFile
 import tarfile
+import re
 
 
 class Ls(Command):
@@ -249,8 +255,60 @@ class Untar(Command):
 
 class Grep(Command):
     def execute(self, cmd, ctx):
-        return super().execute(cmd, ctx)
+        pattern_raw = cmd.positionals[0]
+        path = resolve_path(cmd.positionals[1], ctx)
+        recursive = has_flag(cmd, '-r', '--recursive')
+        case_insensitive = has_flag(cmd, '-i', '--ignore-case')
+        
+        flags = 0 
+        if case_insensitive:
+            flags |= re.IGNORECASE
 
+        pattern = re.compile(pattern_raw, flags)
+        display_path = path.relative_to(ctx.cwd)
+
+        if path.is_dir():
+            if not recursive:
+                raise ExecutionError(f'--recursive/-r flag required for grepping dir {path.name}')
+            self.find_in_dir(pattern, path, display_path, ctx)
+        else:
+            self.grep_file(pattern, path, ignore_open_errors=True, display_path = display_path)
+
+    @staticmethod
+    def grep_file(pattern:re.Pattern, path:Path, ignore_open_errors:bool, display_path:Path):
+        # colors to mimic real grep
+        
+        GREEN = Fore.GREEN + Style.BRIGHT
+        YELLOW = Fore.YELLOW + Style.BRIGHT
+        RED = Fore.RED + Style.BRIGHT
+        RESET = Style.RESET_ALL
+
+        try:
+            with path.open('r', encoding='utf-8') as f:
+
+                for line_num, line in enumerate(f, start=1):
+                    found = re.search(pattern, line)
+                    if found:
+                        found_highlighted = pattern.sub(RED + r"\g<0>" + RESET, line.rstrip())
+                        output = (
+                                    f"{GREEN}{display_path}{RESET}:"
+                                    f"{YELLOW}{line_num}{RESET}:"
+                                    f"{found_highlighted}"
+                                )
+                        print(output)
+        
+        except Exception as e: # TODO: add handling for all errors.
+            if not ignore_open_errors:
+                raise ExecutionError(f"Failed to read file {path.name}")
+        
+    def find_in_dir(self, pattern:re.Pattern, path:Path, display_path, ctx):
+        for file_path in path.iterdir():
+            display_path = file_path.relative_to(ctx.cwd)
+
+            if file_path.is_dir():
+                self.find_in_dir(pattern, file_path, display_path, ctx) # Goes recursively through each file
+            else:
+                self.grep_file(pattern, file_path, ignore_open_errors = True, display_path = display_path)
 
 class History(Command):
     def execute(self, cmd, ctx):

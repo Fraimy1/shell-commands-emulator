@@ -1,5 +1,5 @@
 from src.commands.files import Ls, Cat, Cp, Mv, Rm, Zip, Unzip
-from src.commands.files import Tar, Untar, History, Undo
+from src.commands.files import Tar, Untar, Grep, History, Undo
 from src.commands.navigation import Cd
 from src.core.models import ParsedCommand
 from src.core.errors import ExecutionError
@@ -16,6 +16,7 @@ COMMANDS = {
     "unzip": Unzip().execute,
     "tar": Tar().execute,
     "untar": Untar().execute,
+    "grep": Grep().execute,
     "history": History().execute,
     "undo": Undo().execute
 }

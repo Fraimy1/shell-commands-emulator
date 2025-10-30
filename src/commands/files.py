@@ -11,6 +11,8 @@ from tabulate import tabulate
 from src.utils.path_utils import resolve_path
 import stat
 import shutil
+from zipfile import Zipfile
+import tarfile
 
 class Ls(Command):
     def execute(self, cmd, ctx):
@@ -124,6 +126,33 @@ class Rm(Command):
         except PermissionError: 
             raise ExecutionError(f"No permission to remove {target.name}")
 
+class Zip(Command):
+    def execute(self, cmd, ctx):
+        return super().execute(cmd, ctx)
+
+class Unzip(Command):
+    def execute(self, cmd, ctx):
+        return super().execute(cmd, ctx)
+
+class Tar(Command):
+    def execute(self, cmd, ctx):
+        return super().execute(cmd, ctx)
+
+class Untar(Command):
+    def execute(self, cmd, ctx):
+        return super().execute(cmd, ctx)
+
+class Grep(Command):
+    def execute(self, cmd, ctx):
+        return super().execute(cmd, ctx)
+
+class History(Command):
+    def execute(self, cmd, ctx):
+        return super().execute(cmd, ctx)
+    
+class Undo(Command):
+    def execute(self, cmd, ctx):
+        return super().execute(cmd, ctx)
 
 if __name__ == "__main__":
     ...

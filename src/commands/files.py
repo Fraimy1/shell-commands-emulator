@@ -28,17 +28,27 @@ class Ls(Command):
                 permissions = stat.filemode(info.st_mode)[1:]
                 size = info.st_size
                 last_modified = datetime.fromtimestamp(info.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
-                file_created = datetime.fromtimestamp(info.st_birthtime).strftime("%Y-%m-%d %H:%M:%S")
+                if hasattr(info, "st_birthtime"):
+                    file_created = datetime.fromtimestamp(info.st_birthtime).strftime("%Y-%m-%d %H:%M:%S")
+                else:
+                    file_created = None # Not avilable on Linux
                 is_dir = entry.is_dir()
                 links = info.st_nlink
                 name = entry.name + ' (DIR)' if is_dir else entry.name
-                data.append((name, permissions, links, size, last_modified, file_created))
+                
+                if file_created is None:
+                    data.append((name, permissions, links, size, last_modified))
+                else:
+                    data.append((name, permissions, links, size, last_modified, file_created))
             else:
                 print(entry.name)
 
         if long: 
             headers = ['Name', 'Perms', 'Links', 'Size', 
                        'Modified', 'Created']
+            if file_created is None:
+                headers.remove('Created')
+
             print(tabulate(data, headers=headers, tablefmt='plain'))
 
 

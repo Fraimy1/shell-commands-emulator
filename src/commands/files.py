@@ -66,7 +66,13 @@ class Cp(Command):
             raise ExecutionError(f"File doesn't exist. ({copy_from})")
         
         try:
-            copy_from.copy(copy_to)
+            if hasattr(copy_from, 'copy'):
+                copy_from.copy(copy_to)
+            else:
+                if copy_from.is_dir():
+                    shutil.copytree(copy_from, copy_to)
+                else:
+                    shutil.copy(copy_from, copy_to)
         except Exception as e:
             raise ExecutionError(f'Error during copying from {copy_from.name} to {copy_to.name}: {e}')
         
@@ -105,7 +111,10 @@ class Mv(Command):
         if not move_from.exists():
             raise ExecutionError(f"File doesn't exist. ({move_from})")
         try:
-            move_from.move(move_to)
+            if hasattr(move_from, 'move'):
+                move_from.move(move_to)
+            else:
+                shutil.move(move_from, move_to)
         except Exception as e:
             raise ExecutionError(f'Error during moving from {move_from.name} to {move_to.name}: {e}')
          

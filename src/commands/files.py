@@ -3,13 +3,13 @@ Docstring for commands.files
 ls, cat, cp, mv, rm - here
 """
 
-from os import path
 from pathlib import Path
 from datetime import datetime
 from tabulate import tabulate
 from colorama import Fore, Style
 
 from src.core.errors import ExecutionError
+from src.core.models import ParsedCommand
 from src.commands.base import Command
 from src.utils.path_utils import resolve_path
 from src.utils.misc_utils import has_flag
@@ -56,6 +56,9 @@ class Ls(Command):
                 headers.remove('Created')
 
             print(tabulate(data, headers=headers, tablefmt='plain'))
+    
+    def undo(self, cmd, ctx):
+        return super().undo(cmd, ctx)
 
 
 class Cp(Command):
@@ -81,7 +84,16 @@ class Cp(Command):
                     shutil.copy(copy_from, copy_to)
         except Exception as e:
             raise ExecutionError(f'Error during copying from {copy_from.name} to {copy_to.name}: {e}')
-        
+    
+    def undo(self, cmd, ctx):
+        rm = Rm()
+        rm_cmd = ParsedCommand(
+            name = 'cp_undo',
+            flags= cmd.flags, 
+            positionals=[cmd.positionals[1]]
+        )
+
+        rm.execute(rm_cmd, ctx) 
 
 class Cat(Command):
     def execute(self, cmd, ctx):
@@ -98,6 +110,8 @@ class Cat(Command):
                 print(f.read())
         except Exception:
             raise ExecutionError(f"cat can't read this file. ({target})")
+    def undo(self, cmd, ctx):
+            return super().undo(cmd, ctx)        
 
 
 class Mv(Command):
@@ -123,8 +137,16 @@ class Mv(Command):
                 shutil.move(move_from, move_to)
         except Exception as e:
             raise ExecutionError(f'Error during moving from {move_from.name} to {move_to.name}: {e}')
-         
 
+    def undo(self, cmd, ctx):
+            src, dest = cmd.positionals 
+            mv_cmd = ParsedCommand(
+                name = 'mv_undo',
+                flags = cmd.flags,
+                positionals = [dest, src] # moving back to src
+            )
+
+            self.execute(mv_cmd, ctx)
 
 class Rm(Command):
     def execute(self, cmd, ctx):
@@ -156,6 +178,9 @@ class Rm(Command):
                 shutil.rmtree(target)
         except PermissionError: 
             raise ExecutionError(f"No permission to remove {target.name}")
+    
+    def undo(self, cmd, ctx):
+            return super().undo(cmd, ctx)        
 
 
 class Zip(Command):
@@ -183,6 +208,9 @@ class Zip(Command):
             for file in folder.rglob('*'):
                 zipf.write(file, arcname=file.relative_to(folder))        
 
+    def undo(self, cmd, ctx):
+            return super().undo(cmd, ctx)        
+
 
 class Unzip(Command):
     def execute(self, cmd, ctx):
@@ -204,6 +232,9 @@ class Unzip(Command):
     def unzip_dir(zipfile: Path, dest_dir: Path):
         with ZipFile(zipfile, 'r') as zipf:
             zipf.extractall(dest_dir)
+
+    def undo(self, cmd, ctx):
+            return super().undo(cmd, ctx)        
 
 
 class Tar(Command):
@@ -230,6 +261,9 @@ class Tar(Command):
         with tarfile.open(dest_tar, 'w:gz') as tarf:
             tarf.add(folder, arcname=folder.name)
 
+    def undo(self, cmd, ctx):
+            return super().undo(cmd, ctx)        
+
 
 class Untar(Command):
     def execute(self, cmd, ctx):
@@ -251,6 +285,9 @@ class Untar(Command):
     def untar_dir(src_tar: Path, dest_dir: Path):
         with tarfile.open(src_tar, 'r:*') as tarf:
             tarf.extractall(path=dest_dir)
+
+    def undo(self, cmd, ctx):
+            return super().undo(cmd, ctx)        
 
 
 class Grep(Command):
@@ -297,7 +334,7 @@ class Grep(Command):
                                 )
                         print(output)
         
-        except Exception as e: # TODO: add handling for all errors.
+        except Exception: # TODO: add handling for all errors.
             if not ignore_open_errors:
                 raise ExecutionError(f"Failed to read file {path.name}")
         
@@ -310,14 +347,24 @@ class Grep(Command):
             else:
                 self.grep_file(pattern, file_path, ignore_open_errors = True, display_path = display_path)
 
+    def undo(self, cmd, ctx):
+            return super().undo(cmd, ctx)        
+
+
 class History(Command):
     def execute(self, cmd, ctx):
         return super().execute(cmd, ctx)
-    
 
+    def undo(self, cmd, ctx):
+            return super().undo(cmd, ctx)        
+
+    
 class Undo(Command):
     def execute(self, cmd, ctx):
         return super().execute(cmd, ctx)
+
+    def undo(self, cmd, ctx):
+            return super().undo(cmd, ctx)        
 
 
 if __name__ == "__main__":

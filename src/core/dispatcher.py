@@ -5,6 +5,10 @@ from src.core.models import ParsedCommand
 from src.core.errors import ExecutionError
 from src.core.services import Context
 
+import logging 
+
+logger = logging.getLogger(__name__)
+
 COMMANDS = {
     "ls": Ls().execute,
     "cd": Cd().execute,
@@ -28,7 +32,15 @@ class Dispatcher:
         handler = COMMANDS[cmd.name]
         
         try:
+            logger.debug(f"Executing: {cmd.name}")
             handler(cmd, ctx)
             ctx.history.append(cmd)
+            logger.debug(f"Success: {cmd.name}")
+        
+        except ExecutionError as e:
+            logger.warning(f"{cmd.name}: {e}")
+            raise
+        
         except Exception as e:
-            raise ExecutionError(f"Error executing {cmd.name}: {e}")
+            logger.exception(f"Unexpected error in {cmd.name}")
+            raise ExecutionError(f"Unexpected error in {cmd.name}: {e}")

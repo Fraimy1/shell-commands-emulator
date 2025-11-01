@@ -21,14 +21,20 @@ import zipfile
 from zipfile import ZipFile
 import tarfile
 import re
+import logging
 
+logger = logging.getLogger(__name__)
 
 class Ls(Command):
     def execute(self, cmd, ctx):
         directory = resolve_path(cmd.positionals[0], ctx) if cmd.positionals else ctx.cwd
         long = ('-l' in cmd.flags) or ('--long' in cmd.flags)
         
+        if not directory.exists():
+            raise ExecutionError(f"No such file or directory: {directory}")
+        
         data = []
+        logger.debug(f"Listing directory: {directory}")
         for entry in directory.iterdir():
             if long:
                 info = entry.stat()
@@ -67,7 +73,7 @@ class Cp(Command):
         copy_from = resolve_path(cmd.positionals[0], ctx)
         copy_to = resolve_path(cmd.positionals[1], ctx)
         if (copy_from.is_dir() 
-            and not ('-r' in cmd.flags or '--recursive' in cmd.flags)
+            and not has_flag()
             and any(copy_from.iterdir())
             ):
             raise ExecutionError("Unable to copy non-empty directories without '--recursive' tag.")
@@ -76,6 +82,7 @@ class Cp(Command):
             raise ExecutionError(f"File doesn't exist. ({copy_from})")
         
         try:
+            logger.info(f"Copying {copy_from} -> {copy_to}")
             if hasattr(copy_from, 'copy'):
                 copy_from.copy(copy_to)
             else:
@@ -124,7 +131,7 @@ class Mv(Command):
             move_to = move_to / move_from.name
 
         if (move_from.is_dir() 
-            and not ('-r' in cmd.flags or '--recursive' in cmd.flags)
+            and not has_flag('-r', '--recursive')
             and any(move_from.iterdir())
             ):
             raise ExecutionError("Unable to move non-empty directories without '--recursive' tag.")
@@ -132,6 +139,7 @@ class Mv(Command):
         if not move_from.exists():
             raise ExecutionError(f"File doesn't exist. ({move_from})")
         try:
+            logger.warning(f"Moving {move_from} → {move_to}")
             if hasattr(move_from, 'move'):
                 move_from.move(move_to)
             else:
@@ -155,7 +163,7 @@ class Rm(Command):
         # relative_path = target.relative_to(ctx.cwd)
 
         if (target.is_dir() 
-            and not ('-r' in cmd.flags or '--recursive' in cmd.flags)
+            and not has_flag()
             and any(target.iterdir())
             ):
             raise ExecutionError("Unable to remove non-empty directories without '--recursive' tag.")
@@ -164,6 +172,7 @@ class Rm(Command):
             raise ExecutionError(f"File doesn't exist. ({target})")
 
         agreed = None
+        logger.warning(f"This action will move {target} to trash")
         while agreed is None:
             user_input = input(f"Are you sure you want to delete {target.name}? Y/n: ")
             if user_input.lower() == 'y':
@@ -175,17 +184,10 @@ class Rm(Command):
         try: 
             unique_name = f"{target.name}_{len(ctx.history)}"
             trash_path = TRASH_DIR / unique_name
-            # cmd.meta['trash_path'] = trash_path
             target.rename(trash_path)
-            # if target.is_file():
-            #     target.unlink()
-            # elif target.is_dir() and not ('-r' in cmd.flags or '--recursive' in cmd.flags):
-            #     target.rmdir()
-            # else:
-            #     shutil.rmtree(target)
+
         except PermissionError: 
             raise ExecutionError(f"No permission to remove {target.name}")
-        
     
     def undo(self, cmd, ctx):
             cmd = ctx.history[-1]
@@ -207,25 +209,26 @@ class Rm(Command):
 class Zip(Command):
     def execute(self, cmd, ctx):
         src = resolve_path(cmd.positionals[0], ctx)
-        dest_zip = resolve_path(cmd.positionals[1], ctx)
+        dest = resolve_path(cmd.positionals[1], ctx)
 
         if not src.is_dir():
             raise ExecutionError(f"{src} must be a directory")
 
-        if not dest_zip.name.endswith('.zip'):
-            raise ExecutionError(f"Destination must be a .zip file. But got {dest_zip.name}")
+        if not dest.name.endswith('.zip'):
+            raise ExecutionError(f"Destination must be a .zip file. But got {dest.name}")
 
         if not src.exists():
             raise ExecutionError(f"File doesn't exist. ({src})")
         
         try:
-            self.zip_dir(src, dest_zip) 
+            logger.info(f"Archiving {src} -> {dest}")
+            self.zip_dir(src, dest) 
         except Exception as e:
-            raise ExecutionError(f'Error zipping the folder {src.name} into {dest_zip.name}: {e}')
+            raise ExecutionError(f'Error zipping the folder {src.name} into {dest.name}: {e}')
     
     @staticmethod
-    def zip_dir(folder: Path, dest_zip: Path):
-        with ZipFile(dest_zip, 'w', compression=zipfile.ZIP_DEFLATED) as zipf:
+    def zip_dir(folder: Path, dest: Path):
+        with ZipFile(dest, 'w', compression=zipfile.ZIP_DEFLATED) as zipf:
             for file in folder.rglob('*'):
                 zipf.write(file, arcname=file.relative_to(folder))        
 
@@ -245,6 +248,7 @@ class Unzip(Command):
             raise ExecutionError(f"File doesn't exist. ({src})")
         
         try:
+            logger.info(f"Unarchiving {src} -> {dest_dir}")
             self.unzip_dir(src, dest_dir) 
         except Exception as e:
             raise ExecutionError(f'Error unzipping the file {src.name} into {dest_dir.name}: {e}')
@@ -261,25 +265,26 @@ class Unzip(Command):
 class Tar(Command):
     def execute(self, cmd, ctx):
         src = resolve_path(cmd.positionals[0], ctx)
-        dest_tar = resolve_path(cmd.positionals[1], ctx)
+        dest = resolve_path(cmd.positionals[1], ctx)
 
         if not src.is_dir():
             raise ExecutionError(f"{src} must be a directory")
 
-        if not dest_tar.name.endswith('.tar'):
-            raise ExecutionError(f"Destination must be a .tar file. But got {dest_tar.name}")
+        if not dest.name.endswith('.tar'):
+            raise ExecutionError(f"Destination must be a .tar file. But got {dest.name}")
 
         if not src.exists():
             raise ExecutionError(f"File doesn't exist. ({src})")
         
         try:
-            self.tar_dir(src, dest_tar) 
+            logger.info(f"Archiving {src} -> {dest}")
+            self.tar_dir(src, dest) 
         except Exception as e:
-            raise ExecutionError(f'Error tarring the folder {src.name} into {dest_tar.name}: {e}')
+            raise ExecutionError(f'Error tarring the folder {src.name} into {dest.name}: {e}')
             
     @staticmethod
-    def tar_dir(folder: Path, dest_tar: Path):
-        with tarfile.open(dest_tar, 'w:gz') as tarf:
+    def tar_dir(folder: Path, dest: Path):
+        with tarfile.open(dest, 'w:gz') as tarf:
             tarf.add(folder, arcname=folder.name)
 
     def undo(self, cmd, ctx):
@@ -298,6 +303,7 @@ class Untar(Command):
             raise ExecutionError(f"File doesn't exist. ({src})")
         
         try:
+            logger.info(f"Unarchiving {src} -> {dest_dir}")
             self.untar_dir(src, dest_dir) 
         except Exception as e:
             raise ExecutionError(f'Error untarring the file {src.name} into {dest_dir.name}: {e}')
@@ -324,7 +330,9 @@ class Grep(Command):
 
         pattern = re.compile(pattern_raw, flags)
         display_path = path.relative_to(ctx.cwd)
-
+        
+        logger.debug(f"Searching pattern '{pattern_raw}' in {path}")
+        
         if path.is_dir():
             if not recursive:
                 raise ExecutionError(f'--recursive/-r flag required for grepping dir {path.name}')

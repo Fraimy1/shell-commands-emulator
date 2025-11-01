@@ -1,8 +1,13 @@
+from src.core.errors import ExecutionError
 from src.config import USER_WELCOME_MESSAGE, USER_GOODBYE_MESSAGE
 from src.core.parser import Parser
 from src.core.dispatcher import Dispatcher
 from src.core.validator import Validator
 from src.core.services import Context
+
+import logging 
+
+logger = logging.getLogger(__name__)
 
 class Shell:
     def __init__(self):
@@ -26,5 +31,7 @@ class Shell:
                 cmd = self.parser.tokenize(expr)
                 self.validator.validate_cmd(cmd)
                 self.dispatcher.dispatch_command(cmd, self.ctx)
+            except ExecutionError as e:
+                logger.warning(f"User error: {e}")
             except Exception as e:
-                print(f"Error: {e}\n")
+                logger.exception(f"Fatal error in shell: {e}")

@@ -1,4 +1,7 @@
 from src.shell import Shell
+from src.utils.log_utils import setup_logging
+
+setup_logging()
 
 shell = Shell()
 

@@ -10,6 +10,7 @@ from colorama import Fore, Style
 
 from src.core.errors import ExecutionError
 from src.core.models import ParsedCommand
+from src.config import TRASH_DIR
 from src.commands.base import Command
 from src.utils.path_utils import resolve_path
 from src.utils.misc_utils import has_flag
@@ -137,7 +138,7 @@ class Mv(Command):
                 shutil.move(move_from, move_to)
         except Exception as e:
             raise ExecutionError(f'Error during moving from {move_from.name} to {move_to.name}: {e}')
-
+        
     def undo(self, cmd, ctx):
             src, dest = cmd.positionals 
             mv_cmd = ParsedCommand(
@@ -151,7 +152,8 @@ class Mv(Command):
 class Rm(Command):
     def execute(self, cmd, ctx):
         target = resolve_path(cmd.positionals[0], ctx)
-    
+        # relative_path = target.relative_to(ctx.cwd)
+
         if (target.is_dir() 
             and not ('-r' in cmd.flags or '--recursive' in cmd.flags)
             and any(target.iterdir())
@@ -164,23 +166,42 @@ class Rm(Command):
         agreed = None
         while agreed is None:
             user_input = input(f"Are you sure you want to delete {target.name}? Y/n: ")
-            if user_input == 'Y':
+            if user_input.lower() == 'y':
                 agreed = True
             elif user_input.lower() == 'n': 
                 agreed = False 
                 return False
+            
         try: 
-            if target.is_file():
-                target.unlink()
-            elif target.is_dir() and not ('-r' in cmd.flags or '--recursive' in cmd.flags):
-                target.rmdir()
-            else:
-                shutil.rmtree(target)
+            unique_name = f"{target.name}_{len(ctx.history)}"
+            trash_path = TRASH_DIR / unique_name
+            # cmd.meta['trash_path'] = trash_path
+            target.rename(trash_path)
+            # if target.is_file():
+            #     target.unlink()
+            # elif target.is_dir() and not ('-r' in cmd.flags or '--recursive' in cmd.flags):
+            #     target.rmdir()
+            # else:
+            #     shutil.rmtree(target)
         except PermissionError: 
             raise ExecutionError(f"No permission to remove {target.name}")
+        
     
     def undo(self, cmd, ctx):
-            return super().undo(cmd, ctx)        
+            cmd = ctx.history[-1]
+            src = cmd.positionals[0]
+            unique_name = f"{src.name}_{len(ctx.history)-1}"
+            trash_path = TRASH_DIR / unique_name
+            
+            mv = Mv()
+
+            mv_cmd = ParsedCommand(
+                name = 'rm_undo',
+                flags = cmd.flags,
+                positionals = [trash_path, src] # moving back to src
+            )
+
+            mv.execute(mv_cmd, ctx)
 
 
 class Zip(Command):

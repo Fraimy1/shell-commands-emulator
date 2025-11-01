@@ -2,21 +2,23 @@ import re
 from src.config import COMMANDS
 from src.core.models import ParsedCommand
 from src.core.errors import ParsingError
-TOKEN_PATTERN = r"--?\w+|'[^']*'|\S+"
 
-PATTERN = re.compile(TOKEN_PATTERN)
+import shlex
+import logging 
+
+logger = logging.getLogger(__name__)
 
 class Parser: 
     @staticmethod
     def parse_command(string:str):
-        words = PATTERN.findall(string)
+        words = shlex.split(string)
         return words
 
     def tokenize(self, string:str):
         words = self.parse_command(string)
+        logger.debug(f"Got these words after parsing {string}: {words}")
         if not words:
             raise ParsingError("Empty command")
-        
         name = words.pop(0)
         spec = COMMANDS.get(name)
         
@@ -25,16 +27,31 @@ class Parser:
         
         flags, pos = set(), []
         for w in words:
-            if w.startswith('--') or w.startswith('-'):
+            if not w.startswith('-'):
+                pos.append(w.strip("'"))
+                if len(pos) > spec['max_pos']:
+                    raise ParsingError('Too many positional arguments: ' 
+                                       f'Must be from {spec['min_pos']} to {spec['max_pos']} '
+                                       f'But {len(pos)} were given')
+                continue
+                
+            if w.startswith('--'):
+                w = w.lstrip('-')
                 if w not in spec['flags']:
-                    raise ParsingError(f"No flag '{w}' for '{name}'")
+                    raise ParsingError(f"No flag '--{w}' for '{name}'")    
                 flags.add(w)
             else:
-                pos.append(w.strip("'"))
-        
-        return ParsedCommand(name=name, flags=flags, 
+                w = w.lstrip('-')
+                for flag in w:
+                    if flag not in spec['flags']:
+                        raise ParsingError(f"No flag '-{flag}' for '{name}'")
+                    flags.add(flag)
+        cmd = ParsedCommand(name=name, flags=flags, 
                              positionals=pos, raw=self._advanced_strip(string))
+        logger.debug(f'{cmd=}')
+        return cmd 
     
+    @staticmethod
     def _advanced_strip(string:str):
         return re.sub(r'\s+', ' ', string.strip())
 

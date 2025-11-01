@@ -9,10 +9,10 @@ class Validator:
         if spec is None:
             raise ValidationError(f"Unknown command: {cmd.name}")
         
-        allowed = spec['flags']
-        unknown = cmd.flags - allowed
-        if unknown:
-            raise ValidationError(f"{len(unknown)} arguments for {cmd.name}: {unknown}")
+        # allowed = spec['flags']
+        # unknown = cmd.flags - allowed
+        # if unknown:
+        #     raise ValidationError(f"{len(unknown)} arguments for {cmd.name}: {unknown}")
         
         min_pos, max_pos = spec['min_pos'], spec['max_pos']
         n_pos = len(cmd.positionals)

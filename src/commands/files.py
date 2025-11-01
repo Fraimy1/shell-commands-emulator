@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 class Ls(Command):
     def execute(self, cmd, ctx):
         directory = resolve_path(cmd.positionals[0], ctx) if cmd.positionals else ctx.cwd
-        long = ('-l' in cmd.flags) or ('--long' in cmd.flags)
+        long = has_flag(cmd, 'l', 'long')
         
         if not directory.exists():
             raise ExecutionError(f"No such file or directory: {directory}")
@@ -75,7 +75,7 @@ class Cp(Command):
         copy_from = resolve_path(cmd.positionals[0], ctx)
         copy_to = resolve_path(cmd.positionals[1], ctx)
         if (copy_from.is_dir() 
-            and not has_flag()
+            and not has_flag(cmd, 'r', 'recursive')
             and any(copy_from.iterdir())
             ):
             raise ExecutionError("Unable to copy non-empty directories without '--recursive' tag.")
@@ -133,7 +133,7 @@ class Mv(Command):
             move_to = move_to / move_from.name
 
         if (move_from.is_dir() 
-            and not has_flag('-r', '--recursive')
+            and not has_flag(cmd, 'r', 'recursive')
             and any(move_from.iterdir())
             ):
             raise ExecutionError("Unable to move non-empty directories without '--recursive' tag.")
@@ -165,7 +165,7 @@ class Rm(Command):
         # relative_path = target.relative_to(ctx.cwd)
 
         if (target.is_dir() 
-            and not has_flag()
+            and not has_flag(cmd, 'r', 'recursive')
             and any(target.iterdir())
             ):
             raise ExecutionError("Unable to remove non-empty directories without '--recursive' tag.")
@@ -323,8 +323,8 @@ class Grep(Command):
     def execute(self, cmd, ctx):
         pattern_raw = cmd.positionals[0]
         path = resolve_path(cmd.positionals[1], ctx)
-        recursive = has_flag(cmd, '-r', '--recursive')
-        case_insensitive = has_flag(cmd, '-i', '--ignore-case')
+        recursive = has_flag(cmd, 'r', 'recursive')
+        case_insensitive = has_flag(cmd, 'i', 'ignore-case')
         
         flags = 0 
         if case_insensitive:

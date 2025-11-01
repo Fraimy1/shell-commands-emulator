@@ -32,7 +32,11 @@ class Parser:
             else:
                 pos.append(w.strip("'"))
         
-        return ParsedCommand(name=name, flags=flags, positionals=pos)
+        return ParsedCommand(name=name, flags=flags, 
+                             positionals=pos, raw=self._advanced_strip(string))
+    
+    def _advanced_strip(string:str):
+        return re.sub(r'\s+', ' ', string.strip())
 
 if __name__ == "__main__":
     parser = Parser()

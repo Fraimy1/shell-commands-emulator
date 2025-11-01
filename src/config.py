@@ -5,7 +5,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 LOGS_FILENAME = 'shell.log'
 LOGS_FILE = ROOT / "logs" / LOGS_FILENAME
-HISTORY_FILE = ROOT / ".history"
+HISTORY_FILE = ROOT / ".history.json"
 TRASH_DIR = ROOT / ".trash"
 
 USER_WELCOME_MESSAGE = ""

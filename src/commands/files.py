@@ -3,6 +3,7 @@ Docstring for commands.files
 ls, cat, cp, mv, rm - here
 """
 
+import enum
 from pathlib import Path
 from datetime import datetime
 from tabulate import tabulate
@@ -13,7 +14,8 @@ from src.core.models import ParsedCommand
 from src.config import TRASH_DIR
 from src.commands.base import Command
 from src.utils.path_utils import resolve_path
-from src.utils.misc_utils import has_flag
+from src.utils.misc_utils import has_flag, get_history, update_history_from_file
+from src.utils.misc_utils import append_history
 
 import stat
 import shutil
@@ -342,8 +344,7 @@ class Grep(Command):
 
     @staticmethod
     def grep_file(pattern:re.Pattern, path:Path, ignore_open_errors:bool, display_path:Path):
-        # colors to mimic real grep
-        
+        # colors to mimic real grep        
         GREEN = Fore.GREEN + Style.BRIGHT
         YELLOW = Fore.YELLOW + Style.BRIGHT
         RED = Fore.RED + Style.BRIGHT
@@ -356,12 +357,12 @@ class Grep(Command):
                     found = re.search(pattern, line)
                     if found:
                         found_highlighted = pattern.sub(RED + r"\g<0>" + RESET, line.rstrip())
-                        output = (
+                        line = (
                                     f"{GREEN}{display_path}{RESET}:"
                                     f"{YELLOW}{line_num}{RESET}:"
                                     f"{found_highlighted}"
                                 )
-                        print(output)
+                        print(line)
         
         except Exception: # TODO: add handling for all errors.
             if not ignore_open_errors:
@@ -382,10 +383,30 @@ class Grep(Command):
 
 class History(Command):
     def execute(self, cmd, ctx):
-        return super().execute(cmd, ctx)
+        history = get_history()
+        if history:
+            self.display_history(history)
+        else:
+            logger.warning('History is empty')
 
     def undo(self, cmd, ctx):
             return super().undo(cmd, ctx)        
+    
+    def display_history(history:list[dict]):
+        GREEN = Fore.GREEN + Style.BRIGHT
+        YELLOW = Fore.YELLOW + Style.BRIGHT
+        RESET = Style.RESET_ALL
+        
+        
+        for num, cmd in enumerate(history, start=1):
+            dt = datetime.fromisoformat(cmd['timestamp'])
+            dt_str = dt.strftime("%d %b %H:%M")
+            line = (
+                        f"{GREEN}{num}{RESET}:"
+                        f"{YELLOW}{dt_str}{RESET}:"
+                        f"{cmd['raw']}"
+                    )
+            print(line)
 
     
 class Undo(Command):

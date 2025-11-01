@@ -21,7 +21,7 @@ class Shell:
         while True:
             try:
                 expr = input(f"{self.ctx.cwd}> ")
-            except KeyboardInterrupt:
+            except (KeyboardInterrupt, EOFError):
                 print("\n", USER_GOODBYE_MESSAGE)
                 break
             if expr == "exit":

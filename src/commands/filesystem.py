@@ -34,6 +34,8 @@ class Cp(Command):
                     shutil.copytree(copy_from, copy_to)
                 else:
                     shutil.copy(copy_from, copy_to)
+            
+            cmd.meta["dest"] = str(copy_to)
         except Exception as e:
             raise ExecutionError(f'Error during copying from {copy_from.name} to {copy_to.name}: {e}')
         
@@ -43,7 +45,7 @@ class Cp(Command):
             name = 'cp_undo',
             raw = 'undo',
             flags= ['r'], 
-            positionals=[cmd.positionals[1]],
+            positionals=[Path(cmd.meta['dest'])],
             meta = {
                 'non_interactive': True,
                 'fully_remove': True

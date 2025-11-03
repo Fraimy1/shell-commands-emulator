@@ -1,10 +1,14 @@
 from src.commands.files import Ls, Cat, Cp, Mv, Rm, Zip, Unzip
 from src.commands.files import Tar, Untar, Grep, History, Undo
 from src.commands.navigation import Cd
-from src.core.models import ParsedCommand
+from src.core.models import HistoryEntry, ParsedCommand
 from src.core.errors import ExecutionError
 from src.core.services import Context
+from src.utils.misc_utils import append_history
 
+
+from datetime import datetime
+import time
 import logging 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +38,17 @@ class Dispatcher:
         try:
             logger.debug(f"Executing: {cmd.name}")
             handler(cmd, ctx)
-            ctx.history.append(cmd)
+            entry = HistoryEntry(
+                id = time.time_ns(),
+                raw = cmd.raw,
+                name = cmd.name,
+                flags = set(cmd.flags),
+                positionals = list(cmd.positionals),
+                cwd = ctx.cwd,
+                timestamp = datetime.now().isoformat(),
+                meta = dict(cmd.meta)
+            )
+            append_history(ctx, entry)
             logger.debug(f"Success: {cmd.name}")
         
         except ExecutionError as e:

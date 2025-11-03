@@ -55,7 +55,6 @@ class Cp(Command):
         rm.execute(rm_cmd, ctx) 
         
 
-
 class Mv(Command):
     def execute(self, cmd, ctx):
         move_from = resolve_path(cmd.positionals[0], ctx)
@@ -78,20 +77,18 @@ class Mv(Command):
                 move_from.move(move_to)
             else:
                 shutil.move(move_from, move_to)
+            cmd.meta['src'] = str(move_from)
+            cmd.meta['dest'] = str(move_to)
         except Exception as e:
             raise ExecutionError(f'Error during moving from {move_from.name} to {move_to.name}: {e}')
             
     def undo(self, cmd, ctx):
-            src, dest = cmd.positionals
-            src = resolve_path(src, ctx)
-            dest = resolve_path(dest, ctx)
             mv_cmd = ParsedCommand(
                 name = 'mv_undo',
                 raw = 'undo',
                 flags = ['r'],
-                positionals = [Path(dest), Path(src)] # moving back to src
+                positionals = [Path(cmd.meta['dest']), Path(cmd.meta['src'])] # moving back to src
             )
-
             self.execute(mv_cmd, ctx)
 
 class Rm(Command):

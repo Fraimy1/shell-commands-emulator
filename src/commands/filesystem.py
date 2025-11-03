@@ -45,7 +45,8 @@ class Cp(Command):
             flags= ['r'], 
             positionals=[cmd.positionals[1]],
             meta = {
-                'non_interactive': True
+                'non_interactive': True,
+                'fully_remove': True
             }
         )
 
@@ -95,6 +96,7 @@ class Rm(Command):
     def execute(self, cmd, ctx):
         target = resolve_path(cmd.positionals[0], ctx)
         non_interactive: bool = bool(cmd.meta.get("non_interactive", False))
+        fully_remove: bool = bool(cmd.meta.get("fully_remove", False))
 
         if (target.is_dir() 
             and not has_flag(cmd, 'r', 'recursive')
@@ -116,14 +118,21 @@ class Rm(Command):
                     agreed = True
                 elif user_input.lower() == 'n': 
                     agreed = False 
-                    return False
+                    return
 
         try:
+            if fully_remove:
+                if target.is_dir():
+                    shutil.rmtree(target)
+                else:
+                    target.unlink()
+                return
+
             trash_id = time.time_ns()
             unique_name = f"{trash_id}_{target.name}"
             trash_path = TRASH_DIR / unique_name
-            cmd.meta["trash_id"] = trash_id
             cmd.meta["original_path"] = str(target)
+            cmd.meta["trash_id"] = trash_id
             target.rename(trash_path)
 
         except PermissionError: 

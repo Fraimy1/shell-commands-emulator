@@ -4,6 +4,7 @@ from src.core.parser import Parser
 from src.core.dispatcher import Dispatcher
 from src.core.validator import Validator
 from src.core.services import Context
+from src.utils.misc_utils import update_history_from_file
 
 import logging 
 
@@ -14,6 +15,7 @@ class Shell:
         self.parser = Parser()
         self.validator = Validator()
         self.ctx = Context()
+        update_history_from_file(self.ctx)
         self.dispatcher = Dispatcher()
 
     def start_shell(self):

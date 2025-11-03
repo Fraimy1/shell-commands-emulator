@@ -28,8 +28,8 @@ COMMANDS = {
     'tar': {'flags': set(), 'max_pos': 2, 'min_pos': 2},
     'untar': {'flags': set(), 'max_pos': 1, 'min_pos': 1},
     'grep': {'flags': {'r', 'recursive', 'i', 'ignore-case'}, 'max_pos': 2, 'min_pos': 2},
-    'history': {'flags': set(), 'max_pos': 1, 'min_pos': 1},
-    'undo': {'flags': set(), 'max_pos': 1, 'min_pos': 1},
+    'history': {'flags': set(), 'max_pos': 0, 'min_pos': 0},
+    'undo': {'flags': set(), 'max_pos': 0, 'min_pos': 0},
 }
 
 

@@ -1,6 +1,9 @@
-from src.commands.files import Ls, Cat, Cp, Mv, Rm, Zip, Unzip
-from src.commands.files import Tar, Untar, Grep, History, Undo
+from src.commands.listing import Ls, Cat
+from src.commands.filesystem import Cp, Mv, Rm
 from src.commands.navigation import Cd
+from src.commands.archive import Zip, Unzip, Tar, Untar
+from src.commands.search import Grep
+from src.commands.history import History, Undo
 from src.core.models import HistoryEntry, ParsedCommand
 from src.core.errors import ExecutionError
 from src.core.services import Context

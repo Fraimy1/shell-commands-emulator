@@ -16,8 +16,8 @@ class HistoryEntry:
     id: int
     raw: str
     name: str
-    flags: set[str] = field(default_factory=set)
-    positionals: list[str] = field(default_factory=list)
     cwd: Path
     timestamp: str
+    flags: set[str] = field(default_factory=set)
+    positionals: list[str] = field(default_factory=list)
     meta: dict[str, Any] = field(default_factory=dict)

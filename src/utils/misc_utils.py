@@ -63,12 +63,33 @@ def append_history(ctx:Context, entry: HistoryEntry, append_to_file:bool = True)
         with open(HISTORY_FILE, "w", encoding="utf-8") as f:
             json.dump([entry], f, indent=4, ensure_ascii=False)
 
+def remove_entry_from_file(entry_id: int):
+    try:
+        with open(HISTORY_FILE, "r+", encoding="utf-8") as f:
+            try:
+                data = json.load(f)
+            except json.JSONDecodeError:
+                data = []
+
+            new_data = [e for e in data if e.get("id") != entry_id]
+
+            if len(new_data) != len(data):
+                f.seek(0)
+                json.dump(new_data, f, indent=4, ensure_ascii=False)
+                f.truncate()
+    except FileNotFoundError:
+        pass
+
 def update_history_from_file(ctx:Context):
     data = get_history()
 
-    ctx.history = [
-        [
-            dict_to_entry(e)
-        ]
-        for e in data
-    ]
+    ctx.history = [dict_to_entry(e) for e in data]
+
+def cmd_from_history_entry(entry:HistoryEntry):
+    return ParsedCommand(
+        name = entry.name,
+        flags = entry.flags,
+        positionals = entry.positionals,
+        raw = entry.raw,
+        meta = entry.meta
+    )

@@ -8,15 +8,16 @@ class ParsedCommand:
     name: str
     flags: set[str]
     positionals: list[str]
-    raw: str
+    raw: str = ""
+    meta: dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class HistoryEntry:
     id: int
     raw: str
     name: str
-    flags: set[str]
-    positionals: list[str]
+    flags: set[str] = field(default_factory=set)
+    positionals: list[str] = field(default_factory=list)
     cwd: Path
     timestamp: str
-    meta: dict[str, Any]
+    meta: dict[str, Any] = field(default_factory=dict)

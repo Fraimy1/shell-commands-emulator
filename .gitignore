@@ -6,6 +6,7 @@
 
 .trash/*
 !.trash/.gitkeep
+.history.json
 
 # User-specific stuff
 .idea/

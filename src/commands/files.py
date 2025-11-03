@@ -3,24 +3,25 @@ Docstring for commands.files
 ls, cat, cp, mv, rm - here
 """
 
-import enum
+
 from pathlib import Path
 from datetime import datetime
 from tabulate import tabulate
 from colorama import Fore, Style
+from zipfile import ZipFile
 
 from src.core.errors import ExecutionError
 from src.core.models import ParsedCommand
 from src.config import TRASH_DIR
 from src.commands.base import Command
 from src.utils.path_utils import resolve_path
-from src.utils.misc_utils import has_flag, get_history, update_history_from_file
+from src.utils.misc_utils import cmd_from_history_entry, has_flag, get_history, remove_entry_from_file, update_history_from_file
 from src.utils.misc_utils import append_history
 
+import time
 import stat
 import shutil
 import zipfile
-from zipfile import ZipFile
 import tarfile
 import re
 import logging
@@ -65,6 +66,7 @@ class Ls(Command):
                 headers.remove('Created')
 
             print(tabulate(data, headers=headers, tablefmt='plain'))
+        
     
     def undo(self, cmd, ctx):
         return super().undo(cmd, ctx)
@@ -94,13 +96,17 @@ class Cp(Command):
                     shutil.copy(copy_from, copy_to)
         except Exception as e:
             raise ExecutionError(f'Error during copying from {copy_from.name} to {copy_to.name}: {e}')
-    
+        
     def undo(self, cmd, ctx):
         rm = Rm()
         rm_cmd = ParsedCommand(
             name = 'cp_undo',
-            flags= cmd.flags, 
-            positionals=[cmd.positionals[1]]
+            raw = 'undo',
+            flags= ['r'], 
+            positionals=[cmd.positionals[1]],
+            meta = {
+                'non_interactive': True
+            }
         )
 
         rm.execute(rm_cmd, ctx) 
@@ -120,6 +126,7 @@ class Cat(Command):
                 print(f.read())
         except Exception:
             raise ExecutionError(f"cat can't read this file. ({target})")
+
     def undo(self, cmd, ctx):
             return super().undo(cmd, ctx)        
 
@@ -148,13 +155,16 @@ class Mv(Command):
                 shutil.move(move_from, move_to)
         except Exception as e:
             raise ExecutionError(f'Error during moving from {move_from.name} to {move_to.name}: {e}')
-        
+            
     def undo(self, cmd, ctx):
-            src, dest = cmd.positionals 
+            src, dest = cmd.positionals
+            src = resolve_path(src, ctx)
+            dest = resolve_path(dest, ctx)
             mv_cmd = ParsedCommand(
                 name = 'mv_undo',
-                flags = cmd.flags,
-                positionals = [dest, src] # moving back to src
+                raw = 'undo',
+                flags = ['r'],
+                positionals = [Path(dest), Path(src)] # moving back to src
             )
 
             self.execute(mv_cmd, ctx)
@@ -162,7 +172,7 @@ class Mv(Command):
 class Rm(Command):
     def execute(self, cmd, ctx):
         target = resolve_path(cmd.positionals[0], ctx)
-        # relative_path = target.relative_to(ctx.cwd)
+        non_interactive: bool = bool(cmd.meta.get("non_interactive", False))
 
         if (target.is_dir() 
             and not has_flag(cmd, 'r', 'recursive')
@@ -172,36 +182,44 @@ class Rm(Command):
         
         if not target.exists():
             raise ExecutionError(f"File doesn't exist. ({target})")
-
+        
         agreed = None
-        logger.warning(f"This action will move {target} to trash")
-        while agreed is None:
-            user_input = input(f"Are you sure you want to delete {target.name}? Y/n: ")
-            if user_input.lower() == 'y':
-                agreed = True
-            elif user_input.lower() == 'n': 
-                agreed = False 
-                return False
-            
-        try: 
-            unique_name = f"{target.name}_{len(ctx.history)}"
+        if non_interactive:
+            agreed = True
+        else:
+            logger.warning(f"This action will move {target} to trash")
+            while agreed is None:
+                user_input = input(f"Are you sure you want to delete {target.name}? Y/n: ")
+                if user_input.lower() == 'y':
+                    agreed = True
+                elif user_input.lower() == 'n': 
+                    agreed = False 
+                    return False
+
+        try:
+            trash_id = time.time_ns()
+            unique_name = f"{trash_id}_{target.name}"
             trash_path = TRASH_DIR / unique_name
+            cmd.meta["trash_id"] = trash_id
+            cmd.meta["original_path"] = str(target)
             target.rename(trash_path)
 
         except PermissionError: 
             raise ExecutionError(f"No permission to remove {target.name}")
-    
+        
     def undo(self, cmd, ctx):
-            cmd = ctx.history[-1]
-            src = cmd.positionals[0]
-            unique_name = f"{src.name}_{len(ctx.history)-1}"
+            src = Path(cmd.meta['original_path'])
+
+            trash_id = cmd.meta['trash_id']
+            unique_name = f"{trash_id}_{src.name}"
             trash_path = TRASH_DIR / unique_name
             
             mv = Mv()
 
             mv_cmd = ParsedCommand(
                 name = 'rm_undo',
-                flags = cmd.flags,
+                raw = 'undo_rm',
+                flags = ['r'],
                 positionals = [trash_path, src] # moving back to src
             )
 
@@ -227,6 +245,7 @@ class Zip(Command):
             self.zip_dir(src, dest) 
         except Exception as e:
             raise ExecutionError(f'Error zipping the folder {src.name} into {dest.name}: {e}')
+        
     
     @staticmethod
     def zip_dir(folder: Path, dest: Path):
@@ -283,7 +302,7 @@ class Tar(Command):
             self.tar_dir(src, dest) 
         except Exception as e:
             raise ExecutionError(f'Error tarring the folder {src.name} into {dest.name}: {e}')
-            
+        
     @staticmethod
     def tar_dir(folder: Path, dest: Path):
         with tarfile.open(dest, 'w:gz') as tarf:
@@ -309,7 +328,7 @@ class Untar(Command):
             self.untar_dir(src, dest_dir) 
         except Exception as e:
             raise ExecutionError(f'Error untarring the file {src.name} into {dest_dir.name}: {e}')
-    
+
     @staticmethod
     def untar_dir(src_tar: Path, dest_dir: Path):
         with tarfile.open(src_tar, 'r:*') as tarf:
@@ -341,6 +360,7 @@ class Grep(Command):
             self.find_in_dir(pattern, path, display_path, ctx)
         else:
             self.grep_file(pattern, path, ignore_open_errors=True, display_path = display_path)
+        
 
     @staticmethod
     def grep_file(pattern:re.Pattern, path:Path, ignore_open_errors:bool, display_path:Path):
@@ -392,11 +412,11 @@ class History(Command):
     def undo(self, cmd, ctx):
             return super().undo(cmd, ctx)        
     
+    @staticmethod
     def display_history(history:list[dict]):
         GREEN = Fore.GREEN + Style.BRIGHT
         YELLOW = Fore.YELLOW + Style.BRIGHT
         RESET = Style.RESET_ALL
-        
         
         for num, cmd in enumerate(history, start=1):
             dt = datetime.fromisoformat(cmd['timestamp'])
@@ -408,10 +428,29 @@ class History(Command):
                     )
             print(line)
 
-    
+UNDOABLE_OPERATIONS = {
+    'cp': Cp().undo,
+    'mv': Mv().undo,
+    'rm': Rm().undo
+}
+
 class Undo(Command):
     def execute(self, cmd, ctx):
-        return super().execute(cmd, ctx)
+        # Find the last undoable operation
+        for i in range(len(ctx.history) - 1, -1, -1):
+            entry = ctx.history[i]
+            
+            if entry.name in UNDOABLE_OPERATIONS:
+                try:
+                    prev_cmd = cmd_from_history_entry(entry)
+                    UNDOABLE_OPERATIONS[entry.name](prev_cmd, ctx)
+                except Exception as e:
+                    raise ExecutionError(f"Failed to undo {entry.name}. Error: {e}")
+                ctx.history.pop(i)
+                remove_entry_from_file(entry.id)
+                break
+        else:
+            print("No commands to undo")
 
     def undo(self, cmd, ctx):
             return super().undo(cmd, ctx)        

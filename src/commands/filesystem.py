@@ -9,11 +9,12 @@ from src.utils.path_utils import resolve_path
 from src.utils.misc_utils import has_flag
 from src.core.errors import ExecutionError
 from src.core.models import ParsedCommand
+from src.core.services import Context
 
 logger = logging.getLogger(__name__)
 
 class Cp(Command):
-    def execute(self, cmd, ctx):
+    def execute(self, cmd: ParsedCommand, ctx: Context) -> None:
         copy_from = resolve_path(cmd.positionals[0], ctx)
         copy_to = resolve_path(cmd.positionals[1], ctx)
         if (copy_from.is_dir()
@@ -39,13 +40,13 @@ class Cp(Command):
         except Exception as e:
             raise ExecutionError(f'Error during copying from {copy_from.name} to {copy_to.name}: {e}')
 
-    def undo(self, cmd, ctx):
+    def undo(self, cmd: ParsedCommand, ctx: Context) -> None:
         rm = Rm()
         rm_cmd = ParsedCommand(
             name = 'cp_undo',
             raw = 'undo',
-            flags= ['r'],
-            positionals=[Path(cmd.meta['dest'])],
+            flags= {'r'},
+            positionals=[str(Path(cmd.meta['dest']))],
             meta = {
                 'non_interactive': True,
                 'fully_remove': True
@@ -56,7 +57,7 @@ class Cp(Command):
 
 
 class Mv(Command):
-    def execute(self, cmd, ctx):
+    def execute(self, cmd: ParsedCommand, ctx: Context) -> None:
         move_from = resolve_path(cmd.positionals[0], ctx)
         move_to = resolve_path(cmd.positionals[1], ctx)
 
@@ -82,17 +83,17 @@ class Mv(Command):
         except Exception as e:
             raise ExecutionError(f'Error during moving from {move_from.name} to {move_to.name}: {e}')
 
-    def undo(self, cmd, ctx):
+    def undo(self, cmd: ParsedCommand, ctx: Context) -> None:
             mv_cmd = ParsedCommand(
                 name = 'mv_undo',
                 raw = 'undo',
-                flags = ['r'],
-                positionals = [Path(cmd.meta['dest']), Path(cmd.meta['src'])] # moving back to src
+                flags = {'r'},
+                positionals = [str(Path(cmd.meta['dest'])), str(Path(cmd.meta['src']))] # moving back to src
             )
             self.execute(mv_cmd, ctx)
 
 class Rm(Command):
-    def execute(self, cmd, ctx):
+    def execute(self, cmd: ParsedCommand, ctx: Context) -> None:
         target = resolve_path(cmd.positionals[0], ctx)
         non_interactive: bool = bool(cmd.meta.get("non_interactive", False))
         fully_remove: bool = bool(cmd.meta.get("fully_remove", False))
@@ -137,7 +138,7 @@ class Rm(Command):
         except PermissionError:
             raise ExecutionError(f"No permission to remove {target.name}")
 
-    def undo(self, cmd, ctx):
+    def undo(self, cmd: ParsedCommand, ctx: Context) -> None:
             src = Path(cmd.meta['original_path'])
 
             trash_id = cmd.meta['trash_id']
@@ -149,8 +150,8 @@ class Rm(Command):
             mv_cmd = ParsedCommand(
                 name = 'rm_undo',
                 raw = 'undo_rm',
-                flags = ['r'],
-                positionals = [trash_path, src] # moving back to src
+                flags = {'r'},
+                positionals = [str(trash_path), str(src)] # moving back to src
             )
 
             mv.execute(mv_cmd, ctx)

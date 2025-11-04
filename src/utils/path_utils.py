@@ -11,4 +11,4 @@ def resolve_path(path: str, ctx:Context) -> Path:
         return path.resolve()
     else:
         return (ctx.cwd / path).expanduser().resolve()
-    
+

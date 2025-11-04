@@ -14,10 +14,10 @@ class Ls(Command):
     def execute(self, cmd, ctx):
         directory = resolve_path(cmd.positionals[0], ctx) if cmd.positionals else ctx.cwd
         long = has_flag(cmd, 'l', 'long')
-        
+
         if not directory.exists():
             raise ExecutionError(f"No such file or directory: {directory}")
-        
+
         data = []
         logger.debug(f"Listing directory: {directory}")
         for entry in directory.iterdir():
@@ -33,7 +33,7 @@ class Ls(Command):
                 is_dir = entry.is_dir()
                 links = info.st_nlink
                 name = entry.name + ' (DIR)' if is_dir else entry.name
-                
+
                 if file_created is None:
                     data.append((name, permissions, links, size, last_modified))
                 else:
@@ -41,15 +41,15 @@ class Ls(Command):
             else:
                 print(entry.name)
 
-        if long: 
-            headers = ['Name', 'Perms', 'Links', 'Size', 
+        if long:
+            headers = ['Name', 'Perms', 'Links', 'Size',
                        'Modified', 'Created']
             if file_created is None:
                 headers.remove('Created')
 
             print(tabulate(data, headers=headers, tablefmt='plain'))
-        
-    
+
+
     def undo(self, cmd, ctx):
         return super().undo(cmd, ctx)
 
@@ -62,7 +62,7 @@ class Cat(Command):
 
         if not(target.exists()):
             raise ExecutionError(f"file doesn't exist. ({target})")
-        
+
         try:
             with open(target, 'r') as f:
                 print(f.read())

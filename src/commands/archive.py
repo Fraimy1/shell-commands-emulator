@@ -23,22 +23,22 @@ class Zip(Command):
 
         if not src.exists():
             raise ExecutionError(f"File doesn't exist. ({src})")
-        
+
         try:
             logger.info(f"Archiving {src} -> {dest}")
-            self.zip_dir(src, dest) 
+            self.zip_dir(src, dest)
         except Exception as e:
             raise ExecutionError(f'Error zipping the folder {src.name} into {dest.name}: {e}')
-        
-    
+
+
     @staticmethod
     def zip_dir(folder: Path, dest: Path):
         with ZipFile(dest, 'w', compression=zipfile.ZIP_DEFLATED) as zipf:
             for file in folder.rglob('*'):
-                zipf.write(file, arcname=file.relative_to(folder))        
+                zipf.write(file, arcname=file.relative_to(folder))
 
     def undo(self, cmd, ctx):
-            return super().undo(cmd, ctx)        
+            return super().undo(cmd, ctx)
 
 
 class Unzip(Command):
@@ -51,20 +51,20 @@ class Unzip(Command):
 
         if not src.exists():
             raise ExecutionError(f"File doesn't exist. ({src})")
-        
+
         try:
             logger.info(f"Unarchiving {src} -> {dest_dir}")
-            self.unzip_dir(src, dest_dir) 
+            self.unzip_dir(src, dest_dir)
         except Exception as e:
             raise ExecutionError(f'Error unzipping the file {src.name} into {dest_dir.name}: {e}')
-    
+
     @staticmethod
     def unzip_dir(zipfile: Path, dest_dir: Path):
         with ZipFile(zipfile, 'r') as zipf:
             zipf.extractall(dest_dir)
 
     def undo(self, cmd, ctx):
-            return super().undo(cmd, ctx)        
+            return super().undo(cmd, ctx)
 
 
 class Tar(Command):
@@ -80,20 +80,20 @@ class Tar(Command):
 
         if not src.exists():
             raise ExecutionError(f"File doesn't exist. ({src})")
-        
+
         try:
             logger.info(f"Archiving {src} -> {dest}")
-            self.tar_dir(src, dest) 
+            self.tar_dir(src, dest)
         except Exception as e:
             raise ExecutionError(f'Error tarring the folder {src.name} into {dest.name}: {e}')
-        
+
     @staticmethod
     def tar_dir(folder: Path, dest: Path):
         with tarfile.open(dest, 'w:gz') as tarf:
             tarf.add(folder, arcname=folder.name)
 
     def undo(self, cmd, ctx):
-            return super().undo(cmd, ctx)        
+            return super().undo(cmd, ctx)
 
 
 class Untar(Command):
@@ -106,10 +106,10 @@ class Untar(Command):
 
         if not src.exists():
             raise ExecutionError(f"File doesn't exist. ({src})")
-        
+
         try:
             logger.info(f"Unarchiving {src} -> {dest_dir}")
-            self.untar_dir(src, dest_dir) 
+            self.untar_dir(src, dest_dir)
         except Exception as e:
             raise ExecutionError(f'Error untarring the file {src.name} into {dest_dir.name}: {e}')
 
@@ -119,4 +119,4 @@ class Untar(Command):
             tarf.extractall(path=dest_dir)
 
     def undo(self, cmd, ctx):
-            return super().undo(cmd, ctx)        
+            return super().undo(cmd, ctx)

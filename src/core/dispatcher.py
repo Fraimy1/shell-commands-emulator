@@ -12,7 +12,7 @@ from src.utils.misc_utils import append_history
 
 from datetime import datetime
 import time
-import logging 
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class Dispatcher:
     def dispatch_command(cmd: ParsedCommand, ctx: Context):
 
         handler = COMMANDS[cmd.name]
-        
+
         try:
             logger.debug(f"Executing: {cmd.name}")
             handler(cmd, ctx)
@@ -53,11 +53,11 @@ class Dispatcher:
             )
             append_history(ctx, entry)
             logger.debug(f"Success: {cmd.name}")
-        
+
         except ExecutionError as e:
             logger.warning(f"{cmd.name}: {e}")
             raise
-        
+
         except KeyboardInterrupt:
             logger.info(f'Command {cmd.name} execution was interrupted.')
 

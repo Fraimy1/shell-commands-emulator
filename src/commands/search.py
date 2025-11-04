@@ -16,27 +16,27 @@ class Grep(Command):
         path = resolve_path(cmd.positionals[1], ctx)
         recursive = has_flag(cmd, 'r', 'recursive')
         case_insensitive = has_flag(cmd, 'i', 'ignore-case')
-        
-        flags = 0 
+
+        flags = 0
         if case_insensitive:
             flags |= re.IGNORECASE
 
         pattern = re.compile(pattern_raw, flags)
         display_path = path.relative_to(ctx.cwd)
-        
+
         logger.debug(f"Searching pattern '{pattern_raw}' in {path}")
-        
+
         if path.is_dir():
             if not recursive:
                 raise ExecutionError(f'--recursive/-r flag required for grepping dir {path.name}')
             self.find_in_dir(pattern, path, display_path, ctx)
         else:
             self.grep_file(pattern, path, ignore_open_errors=True, display_path = display_path)
-        
+
 
     @staticmethod
     def grep_file(pattern:re.Pattern, path:Path, ignore_open_errors:bool, display_path:Path):
-        # colors to mimic real grep        
+        # colors to mimic real grep
         GREEN = Fore.GREEN + Style.BRIGHT
         YELLOW = Fore.YELLOW + Style.BRIGHT
         RED = Fore.RED + Style.BRIGHT
@@ -55,11 +55,11 @@ class Grep(Command):
                                     f"{found_highlighted}"
                                 )
                         print(line)
-        
+
         except Exception: # TODO: add handling for all errors.
             if not ignore_open_errors:
                 raise ExecutionError(f"Failed to read file {path.name}")
-        
+
     def find_in_dir(self, pattern:re.Pattern, path:Path, display_path, ctx):
         for file_path in path.iterdir():
             display_path = file_path.relative_to(ctx.cwd)
@@ -70,4 +70,4 @@ class Grep(Command):
                 self.grep_file(pattern, file_path, ignore_open_errors = True, display_path = display_path)
 
     def undo(self, cmd, ctx):
-            return super().undo(cmd, ctx)        
+            return super().undo(cmd, ctx)

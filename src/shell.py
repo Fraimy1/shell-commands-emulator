@@ -6,7 +6,7 @@ from src.core.validator import Validator
 from src.core.services import Context
 from src.utils.misc_utils import update_history_from_file
 
-import logging 
+import logging
 
 logger = logging.getLogger(__name__)
 

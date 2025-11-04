@@ -12,6 +12,6 @@ class Validator:
         min_pos, max_pos = spec['min_pos'], spec['max_pos']
         n_pos = len(cmd.positionals)
         if not (min_pos <= n_pos <= max_pos):
-            raise ValidationError(f"{cmd.name} expects from {min_pos} to {max_pos} " 
+            raise ValidationError(f"{cmd.name} expects from {min_pos} to {max_pos} "
                                   f"positional arguments, but {n_pos} were given")
-        
+

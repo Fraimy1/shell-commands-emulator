@@ -1,4 +1,4 @@
-from pathlib import Path 
+from pathlib import Path
 import logging
 
 HOME_DIR = Path.home()
@@ -29,7 +29,7 @@ COMMANDS = {
     'untar': {'flags': set(), 'max_pos': 1, 'min_pos': 1},
 
     'grep': {'flags': {'r', 'recursive', 'i', 'ignore-case'}, 'max_pos': 2, 'min_pos': 2},
-    
+
     'history': {'flags': set(), 'max_pos': 0, 'min_pos': 0},
     'undo': {'flags': set(), 'max_pos': 0, 'min_pos': 0},
 }

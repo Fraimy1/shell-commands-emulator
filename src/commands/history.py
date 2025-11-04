@@ -21,14 +21,14 @@ class History(Command):
             logger.warning('History is empty')
 
     def undo(self, cmd, ctx):
-            return super().undo(cmd, ctx)        
-    
+            return super().undo(cmd, ctx)
+
     @staticmethod
     def display_history(history:list[dict]):
         GREEN = Fore.GREEN + Style.BRIGHT
         YELLOW = Fore.YELLOW + Style.BRIGHT
         RESET = Style.RESET_ALL
-        
+
         for num, cmd in enumerate(history, start=1):
             dt = datetime.fromisoformat(cmd['timestamp'])
             dt_str = dt.strftime("%d %b %H:%M")
@@ -50,7 +50,7 @@ class Undo(Command):
         # Find the last undoable operation
         for i in range(len(ctx.history) - 1, -1, -1):
             entry = ctx.history[i]
-            
+
             if entry.name in UNDOABLE_OPERATIONS:
                 try:
                     prev_cmd = cmd_from_history_entry(entry)
@@ -64,7 +64,7 @@ class Undo(Command):
             print("No commands to undo")
 
     def undo(self, cmd, ctx):
-            return super().undo(cmd, ctx)        
+            return super().undo(cmd, ctx)
 
 
 if __name__ == "__main__":

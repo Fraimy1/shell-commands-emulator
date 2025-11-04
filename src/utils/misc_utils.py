@@ -40,14 +40,14 @@ def get_history():
             data = json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
         data = []
-    
+
     return data
 
 def append_history(ctx:Context, entry: HistoryEntry, append_to_file:bool = True):
     ctx.history.append(entry)
     if not append_to_file:
-        return 
-    
+        return
+
     try:
         with open(HISTORY_FILE, "r+", encoding="utf-8") as f:
             try:

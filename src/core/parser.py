@@ -4,11 +4,11 @@ from src.core.models import ParsedCommand
 from src.core.errors import ParsingError
 
 import shlex
-import logging 
+import logging
 
 logger = logging.getLogger(__name__)
 
-class Parser: 
+class Parser:
     @staticmethod
     def parse_command(string:str):
         words = shlex.split(string)
@@ -21,24 +21,24 @@ class Parser:
             raise ParsingError("Empty command")
         name = words.pop(0)
         spec = COMMANDS.get(name)
-        
+
         if not spec:
             raise ParsingError(f"Command '{name}' is not supported")
-        
+
         flags, pos = set(), []
         for w in words:
             if not w.startswith('-'):
                 pos.append(w.strip("'"))
                 if len(pos) > spec['max_pos']:
-                    raise ParsingError('Too many positional arguments: ' 
+                    raise ParsingError('Too many positional arguments: '
                                        f'Must be from {spec['min_pos']} to {spec['max_pos']} '
                                        f'But {len(pos)} were given')
                 continue
-                
+
             if w.startswith('--'):
                 w = w.lstrip('-')
                 if w not in spec['flags']:
-                    raise ParsingError(f"No flag '--{w}' for '{name}'")    
+                    raise ParsingError(f"No flag '--{w}' for '{name}'")
                 flags.add(w)
             else:
                 w = w.lstrip('-')
@@ -46,11 +46,11 @@ class Parser:
                     if flag not in spec['flags']:
                         raise ParsingError(f"No flag '-{flag}' for '{name}'")
                     flags.add(flag)
-        cmd = ParsedCommand(name=name, flags=flags, 
+        cmd = ParsedCommand(name=name, flags=flags,
                              positionals=pos, raw=self._advanced_strip(string))
         logger.debug(f'{cmd=}')
-        return cmd 
-    
+        return cmd
+
     @staticmethod
     def _advanced_strip(string:str):
         return re.sub(r'\s+', ' ', string.strip())

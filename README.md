@@ -1,63 +1,99 @@
-# Шаблон репозитория, для успешной сдачи лабораторных работ.
+# Shell emulator - Medium
 
-## Введение
-Данный шаблон является примером оформления кода для сдачи лабораторных работ.
-Рекомендуется  строго его придерживаться во избежания проблем при сдаче и понижения баллов
+Консольная оболочка с файловыми командами на Python.
 
+## Возможности
+
+### Базовые команды
+* `ls [path]` - список файлов и каталогов; опция `-l` для подробного отображения
+* `cd <path>` - переход в каталог; поддержка `~` для домашнего каталога и `..` для родительского
+* `cat <file>` - вывод содержимого файла
+* `cp <source> <dest>` - копирование файлов/каталогов; опция `-r` для рекурсивного копирования
+* `mv <source> <dest>` - перемещение/переименование файлов и каталогов
+* `rm <path>` - удаление файлов; опция `-r` для рекурсивного удаления каталогов (требует подтверждения)
+
+### Расширенные возможности (Medium)
+* Архивы: `zip <folder> <archive.zip>`, `unzip <archive.zip>`, `tar <folder> <archive.tar>`, `untar <archive.tar>`
+* Поиск: `grep <pattern> <path>` с опциями `-r` (рекурсивно) и `-i` (без учёта регистра)
+* История: `history` - просмотр истории команд, `undo` - отмена последней операции (`cp`, `mv`, `rm`)
+
+### Логирование
+* Все команды и ошибки записываются в файл `logs/shell.log`
+* Формат: `[YYYY-MM-DD HH:MM:SS] [LEVEL] module: message`
+
+## Примеры
+
+```
+F:\Dev\shell-commands-emulator> ls -l
+Name         Perms    Links  Size  Modified           Created
+src          rwxr-xr-x  1   4096  2025-01-15 10:30:22  2025-01-15 10:30:22
+...
+
+F:\Dev\shell-commands-emulator> cd src
+F:\Dev\shell-commands-emulator\src> cat main.py
+from src.shell import Shell
+...
+
+F:\Dev\shell-commands-emulator\src> grep -r "def execute" .
+commands/base.py:5:    def execute(self, cmd: ParsedCommand, ctx: Context):
+
+F:\Dev\shell-commands-emulator> history
+1: 15 Jan 10:30: ls -l
+2: 15 Jan 10:31: cd src
+3: 15 Jan 10:32: cat main.py
+```
+
+## Установка и запуск
+
+```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# Linux/Mac: source .venv/bin/activate
+
+pip install -r requirements.txt
+
+python -m src.main
+```
 
 ## Структура проекта
 
- <pre>
-    .
-    ├── lab<# лабораторной работы>             # Кодовая база вашей лабораторной работы
-    │   ├── src/                               # Исходный код
-    │   ├── tests/                             # Unit тесты
-    │   ├── uv.lock                            # зависимости вашего проекта
-    │   ├── report.pdf                         # Отчет
-    │   ├── .gitignore                         # git ignore файл
-    │   ├──.pre-commit-config.yaml             # Средства автоматизации проверки кодстайла
-    │   ├── README.md                          # Описание вашего проекта, с описанием файлов и с титульником о том,
-                                               # что и какая задача
-</pre>
-
-В папке [src](./src) лежат файлы с реализацией задачи заданной в лабораторной работе. Обязательным файлом является файл
-[main.py](./src/main.py) в котором описана точка входа в приложение - функция **main**. Требования к коду:
-- Переменные, функции и модули именуются по [**snake_case**](https://realpython.com/ref/glossary/snake-case/)
-- Константы должны быть вынесены в файл **constants.py** и именовановаться с помощию символов в верхнем регистре
-- Классы должны именоваться в [**PascalCase**](https://habr.com/ru/articles/724556/)
-- Имена сущностей должны быть осмысленные и содержательные
-- Все отступы должны быть консистентны: 1 TAB = 4 spaces
-- Весь функционал должен быть описан в функциях и в классах. Не допускается писать весь в глобальном скоупе или в одной функции
-- К каждой функции должны быть описаны  [**docstring**](https://peps.python.org/pep-0257/) и аннотации к аргументам и выходным параметрам функций.
-
-В качестве референса проще cходу соблюдать [**PEP8**](https://peps.python.org/pep-0008/) и использовать IDE c готовой поддержкой:
-например PyCharm или VSCode c настроенными плагинами.
-В ходе попыток запушить код в репозиторий ваш код будет проходить проверку статическим анализатором [**mypy**](https://mypy-lang.org/)
-а также с встроенным в [**ruff**](https://astral.sh/ruff) на предмет нарушения код стайла. При работе с кодовой базой
-всю работу необходимо выполнять в [виртуальном окружении](https://docs.python.org/3/tutorial/venv.html)
-
-
-В папке [tests](./tests) лежат [unit тесты](https://tproger.ru/articles/testiruem-na-python-unittest-i-pytest-instrukcija-dlja-nachinajushhih) для проверки функциональности программы или ее частей.
-Рекомендуется использовать pytest. Также название тестов должно быть осмысленно и содержать определение проверямой части.
-Базовые соглашения pytest можно посмотреть [здесь](https://www.qabash.com/pytest-default-naming-conventions-guide/).
-Рекомендуется проверять не только успешные кейсы, но и краевые условия и кейсы в которых была допущена ошибка (неудачные кейсы).
-
-В качестве пакетного менджера в данном шаблоне/репозитории используется [uv](https://github.com/astral-sh/uv).
-Можно использовать и [стандартные виртальные окружения](https://docs.python.org/3/library/venv.html). В таком случае необходимо добавить в репозиторий `requirements.txt`.
-Это достигается командой
-```shell
-pip freeze > requirements.txt
 ```
-Также разрешается использовать [`poetry`](https://python-poetry.org/)
-## Как работать с репозиторием и шаблонами
-1. Необходимо создать репозиторий из этого шаблона. Посмотреть можно [здесь](https://docs.github.com/ru/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)
-2. Склонировать или спуллить его к себе на машину командами `git pull` или `git clone`
-3. Создать виртуальное окружение:
+.
+├── src/
+│   ├── main.py              # точка входа
+│   ├── shell.py             # основной цикл оболочки
+│   ├── config.py            # конфигурация и константы
+│   ├── core/
+│   │   ├── parser.py        # парсинг команд
+│   │   ├── validator.py     # валидация команд
+│   │   ├── dispatcher.py    # диспетчеризация команд
+│   │   ├── models.py         # модели данных
+│   │   ├── services.py      # контекст (текущий каталог, история)
+│   │   └── errors.py        # исключения
+│   ├── commands/
+│   │   ├── base.py          # базовый класс Command
+│   │   ├── navigation.py    # cd
+│   │   ├── listing.py       # ls, cat
+│   │   ├── filesystem.py    # cp, mv, rm
+│   │   ├── archive.py        # zip, unzip, tar, untar
+│   │   ├── search.py        # grep
+│   │   └── history.py       # history, undo
+│   └── utils/
+│       ├── log_utils.py     # настройка логирования
+│       ├── path_utils.py    # разрешение путей
+│       └── misc_utils.py    # вспомогательные функции
+├── tests/                   # тесты
+└── logs/
+    └── shell.log            # журнал команд
+```
 
-    a. Для uv прописать команду `uv venv`. Затем прописать `.venv/bin/activate` в терминале
+## Тесты
 
-    b. Для обычного python `python -m venv <имя директории где будет храниться папка .venv>`. Затем прописать `.venv/bin/activate` в терминале
-4. Установить [`pre-commit`](https://pre-commit.com/). Для этого достаточно ввести команду `pip install pre-commit`
-5. Выполнить команду `pre-commit install`
-6. При запушивании в репозиторий необходимо правильно составлять сообщения коммита. Правила можно прочитать [здесь](https://github.com/RomuloOliveira/commit-messages-guide/blob/master/README_ru-RU.md)
-7. **Внимательно** читайте то, что пишется при попытке коммита, если исправили ошибки нужно заново добавить отредактированные файлы в гит и попробовать коммитнуть
+```bash
+pytest --disable-warnings --cov=src --cov-report=term-missing
+```
+
+## Код-стайл и типы
+
+* PEP8/ruff: `ruff check`
+* Типы (mypy): `mypy src`

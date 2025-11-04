@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 from src.commands.listing import Ls, Cat
 from src.core.errors import ExecutionError
 from .conftest import pc

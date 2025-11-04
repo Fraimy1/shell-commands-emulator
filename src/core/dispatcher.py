@@ -58,7 +58,7 @@ class Dispatcher:
             logger.warning(f"{cmd.name}: {e}")
             raise
         
-        except KeyboardInterrupt as e:
+        except KeyboardInterrupt:
             logger.info(f'Command {cmd.name} execution was interrupted.')
 
         except Exception as e:

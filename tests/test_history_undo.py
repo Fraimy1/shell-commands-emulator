@@ -1,5 +1,4 @@
 from datetime import datetime
-from pathlib import Path
 from src.commands.history import History, Undo
 from src.commands.filesystem import Cp, Rm, Mv
 from src.core.models import HistoryEntry

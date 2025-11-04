@@ -2,7 +2,7 @@ import pytest
 from pathlib import Path
 from src.commands.listing import Ls, Cat
 from src.core.errors import ExecutionError
-from .conftest import pc, strip_ansi
+from .conftest import pc
 
 def test_ls_names(tmp_path, ctx, capsys):
     (tmp_path / "a.txt").write_text("a")

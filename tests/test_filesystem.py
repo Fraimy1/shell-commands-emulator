@@ -1,6 +1,5 @@
 import re
 import pytest
-from pathlib import Path
 from src.commands.filesystem import Cp, Mv, Rm
 from src.core.errors import ExecutionError
 from .conftest import pc

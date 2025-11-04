@@ -1,6 +1,5 @@
 import re
 import pytest
-from pathlib import Path
 from src.core.services import Context
 from src.core.models import ParsedCommand
 import src.commands.filesystem as filesystem_mod  # for TRASH_DIR monkeypatch

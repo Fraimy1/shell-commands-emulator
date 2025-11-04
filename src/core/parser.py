@@ -2,6 +2,7 @@ import re
 from src.config import COMMANDS
 from src.core.models import ParsedCommand
 from src.core.errors import ParsingError
+from typing import cast
 
 import shlex
 import logging
@@ -26,24 +27,28 @@ class Parser:
             raise ParsingError(f"Command '{name}' is not supported")
 
         flags, pos = set(), []
+        max_pos = cast(int, spec['max_pos'])
+        min_pos = cast(int, spec['min_pos'])
+        spec_flags = cast(set[str], spec['flags'])
+
         for w in words:
             if not w.startswith('-'):
                 pos.append(w.strip("'"))
-                if len(pos) > spec['max_pos']:
+                if len(pos) > max_pos:
                     raise ParsingError('Too many positional arguments: '
-                                       f'Must be from {spec['min_pos']} to {spec['max_pos']} '
+                                       f'Must be from {min_pos} to {max_pos} '
                                        f'But {len(pos)} were given')
                 continue
 
             if w.startswith('--'):
                 w = w.lstrip('-')
-                if w not in spec['flags']:
+                if w not in spec_flags:
                     raise ParsingError(f"No flag '--{w}' for '{name}'")
                 flags.add(w)
             else:
                 w = w.lstrip('-')
                 for flag in w:
-                    if flag not in spec['flags']:
+                    if flag not in spec_flags:
                         raise ParsingError(f"No flag '-{flag}' for '{name}'")
                     flags.add(flag)
         cmd = ParsedCommand(name=name, flags=flags,

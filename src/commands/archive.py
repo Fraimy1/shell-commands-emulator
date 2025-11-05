@@ -15,9 +15,6 @@ class Zip(Command):
         src = resolve_path(cmd.positionals[0], ctx)
         dest = resolve_path(cmd.positionals[1], ctx)
 
-        if not src.is_dir():
-            raise ExecutionError(f"{src} must be a directory")
-
         if not dest.name.endswith('.zip'):
             raise ExecutionError(f"Destination must be a .zip file. But got {dest.name}")
 
@@ -71,9 +68,6 @@ class Tar(Command):
     def execute(self, cmd, ctx):
         src = resolve_path(cmd.positionals[0], ctx)
         dest = resolve_path(cmd.positionals[1], ctx)
-
-        if not src.is_dir():
-            raise ExecutionError(f"{src} must be a directory")
 
         if not dest.name.endswith('.tar'):
             raise ExecutionError(f"Destination must be a .tar file. But got {dest.name}")

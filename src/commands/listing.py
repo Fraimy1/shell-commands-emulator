@@ -11,6 +11,11 @@ from src.core.errors import ExecutionError
 logger = logging.getLogger(__name__)
 
 class Ls(Command):
+    """Returns a list of files in the dir
+    
+    --long/-l - gives full data about files in the dir 
+    """
+    
     def execute(self, cmd, ctx):
         directory = resolve_path(cmd.positionals[0], ctx) if cmd.positionals else ctx.cwd
         long = has_flag(cmd, 'l', 'long')
@@ -54,6 +59,8 @@ class Ls(Command):
         return super().undo(cmd, ctx)
 
 class Cat(Command):
+    """Reads contents of the file"""
+    
     def execute(self, cmd, ctx):
         target = resolve_path(cmd.positionals[0], ctx)
 

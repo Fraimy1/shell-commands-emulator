@@ -4,6 +4,11 @@ from src.config import HOME_DIR
 from src.utils.path_utils import resolve_path
 
 class Cd(Command):
+    """Moves current directory to the one specified
+    
+    has special ~ that returns to home directory
+    """
+    
     def execute(self, cmd, ctx):
 
         if cmd.positionals[0] == '~':

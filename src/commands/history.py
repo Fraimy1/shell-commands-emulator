@@ -13,6 +13,8 @@ from src.commands.filesystem import Cp, Mv, Rm
 logger = logging.getLogger(__name__)
 
 class History(Command):
+    """Outputs history of commands from .history.json"""
+    
     def execute(self, cmd, ctx):
         history = get_history()
         if history:
@@ -46,6 +48,11 @@ UNDOABLE_OPERATIONS = {
 }
 
 class Undo(Command):
+    """Executes all undo commands of other classes
+    
+    Looks for a command from the end to start and undoes it.
+    If the undoable command wasn't found just returns user friendly output.
+    """
     def execute(self, cmd, ctx):
         # Find the last undoable operation
         for i in range(len(ctx.history) - 1, -1, -1):

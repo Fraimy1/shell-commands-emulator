@@ -14,6 +14,10 @@ from src.core.services import Context
 logger = logging.getLogger(__name__)
 
 class Cp(Command):
+    """Copies file from source to destination
+    - Undo removes the copy (Calls Rm)   
+    """
+    
     def execute(self, cmd: ParsedCommand, ctx: Context) -> None:
         copy_from = resolve_path(cmd.positionals[0], ctx)
         copy_to = resolve_path(cmd.positionals[1], ctx)
@@ -57,6 +61,10 @@ class Cp(Command):
 
 
 class Mv(Command):
+    """Moves file from source to destination
+    - Undo moves the files from destination to source (Calls Mv)     
+    """
+    
     def execute(self, cmd: ParsedCommand, ctx: Context) -> None:
         move_from = resolve_path(cmd.positionals[0], ctx)
         move_to = resolve_path(cmd.positionals[1], ctx)
@@ -93,6 +101,14 @@ class Mv(Command):
             self.execute(mv_cmd, ctx)
 
 class Rm(Command):
+    """Removes source file and moves it to trash
+
+    It is assigned a {trash_id}_{target.name} in trash, 
+    so it can be moved back to source for Undo
+    
+    - undo moves from trash back to source (calls Mv)
+    """
+    
     def execute(self, cmd: ParsedCommand, ctx: Context) -> None:
         target = resolve_path(cmd.positionals[0], ctx)
         non_interactive: bool = bool(cmd.meta.get("non_interactive", False))

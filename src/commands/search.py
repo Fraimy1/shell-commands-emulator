@@ -11,6 +11,12 @@ from src.core.errors import ExecutionError
 logger = logging.getLogger(__name__)
 
 class Grep(Command):
+    """Returns all lines of the file matching pattern 
+    
+    --recursive/-r - to look inside folder
+    --ignore-case/-i - to ignore case when matching pattern
+    """
+    
     def execute(self, cmd, ctx):
         pattern_raw = cmd.positionals[0]
         path = resolve_path(cmd.positionals[1], ctx)

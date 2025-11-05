@@ -93,3 +93,8 @@ def cmd_from_history_entry(entry:HistoryEntry):
         raw = entry.raw,
         meta = entry.meta
     )
+
+def setup():
+    if not Path(HISTORY_FILE).exists():
+        with open(HISTORY_FILE, 'w') as f:
+            f.write('')

@@ -4,11 +4,12 @@ from src.core.parser import Parser
 from src.core.dispatcher import Dispatcher
 from src.core.validator import Validator
 from src.core.services import Context
-from src.utils.misc_utils import update_history_from_file
+from src.utils.misc_utils import update_history_from_file, setup
 
 import logging
 
 logger = logging.getLogger(__name__)
+setup()
 
 class Shell:
     def __init__(self):

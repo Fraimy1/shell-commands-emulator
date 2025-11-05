@@ -11,6 +11,8 @@ from src.core.errors import ExecutionError
 logger = logging.getLogger(__name__)
 
 class Zip(Command):
+    """Compress directory/file into .zip file"""
+    
     def execute(self, cmd, ctx):
         src = resolve_path(cmd.positionals[0], ctx)
         dest = resolve_path(cmd.positionals[1], ctx)
@@ -39,6 +41,8 @@ class Zip(Command):
 
 
 class Unzip(Command):
+    """Unzip .zip file to a directory"""
+
     def execute(self, cmd, ctx):
         src = resolve_path(cmd.positionals[0], ctx)
         dest_dir = ctx.cwd / src.name.replace('.zip', '')
@@ -65,6 +69,8 @@ class Unzip(Command):
 
 
 class Tar(Command):
+    """Tar file/directory into a .tar file"""
+
     def execute(self, cmd, ctx):
         src = resolve_path(cmd.positionals[0], ctx)
         dest = resolve_path(cmd.positionals[1], ctx)
@@ -91,6 +97,8 @@ class Tar(Command):
 
 
 class Untar(Command):
+    """Untar .tar file to a directory"""
+
     def execute(self, cmd, ctx):
         src = resolve_path(cmd.positionals[0], ctx)
         dest_dir = ctx.cwd

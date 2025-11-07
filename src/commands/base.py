@@ -3,6 +3,7 @@ from src.core.services import Context
 from src.core.errors import ExecutionError
 from pathlib import Path
 from src.utils.path_utils import resolve_path
+from src.utils.misc_utils import has_flag
 import logging
 
 logger = logging.getLogger(__name__)
@@ -62,3 +63,13 @@ class ArchiveCommand(Command):
     def ensure_tar(self, path:Path):
         if not path.name.endswith('.tar'):
             raise ExecutionError(f"Destination must be a .tar file. But got {path.name}")
+        
+class FileSystemCommand(Command):
+    """An interface for filesystem-related commands"""
+
+    def ensure_recursive(self, path:Path, cmd: ParsedCommand):
+        if (path.is_dir()
+            and not has_flag(cmd, 'r', 'recursive')
+            and any(path.iterdir())
+            ):
+            raise ExecutionError("Unable to copy non-empty directories without --recursive/-r tag.")

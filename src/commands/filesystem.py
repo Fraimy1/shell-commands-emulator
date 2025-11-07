@@ -3,17 +3,16 @@ import shutil
 import time
 import logging
 
-from src.commands.base import Command
+from src.commands.base import FileSystemCommand
 from src.config import TRASH_DIR
 from src.utils.path_utils import resolve_path
-from src.utils.misc_utils import has_flag
 from src.core.errors import ExecutionError
 from src.core.models import ParsedCommand
 from src.core.services import Context
 
 logger = logging.getLogger(__name__)
 
-class Cp(Command):
+class Cp(FileSystemCommand):
     """Copies file from source to destination
     - Undo removes the copy (Calls Rm)   
     """
@@ -21,28 +20,23 @@ class Cp(Command):
     def execute(self, cmd: ParsedCommand, ctx: Context) -> None:
         copy_from = resolve_path(cmd.positionals[0], ctx)
         copy_to = resolve_path(cmd.positionals[1], ctx)
-        if (copy_from.is_dir()
-            and not has_flag(cmd, 'r', 'recursive')
-            and any(copy_from.iterdir())
-            ):
-            raise ExecutionError("Unable to copy non-empty directories without '--recursive' tag.")
+        
+        self.ensure_exists(copy_from)
+        self.ensure_recursive(copy_from, cmd)
 
-        if not copy_from.exists():
-            raise ExecutionError(f"File doesn't exist. ({copy_from})")
+        logger.info(f"Copying {copy_from} -> {copy_to}")
+        self.safe_exec(self.copy_file, copy_from, copy_to, cmd,
+                       msg = f'Error during copying from {copy_from.name} to {copy_to.name}')
 
-        try:
-            logger.info(f"Copying {copy_from} -> {copy_to}")
-            if hasattr(copy_from, 'copy'):
-                copy_from.copy(copy_to)
+    def copy_file(src:Path, dst:Path, cmd:ParsedCommand):
+        if hasattr(src, 'copy'):
+            src.copy(dst)
+        else:
+            if src.is_dir():
+                shutil.copytree(src, dst)
             else:
-                if copy_from.is_dir():
-                    shutil.copytree(copy_from, copy_to)
-                else:
-                    shutil.copy(copy_from, copy_to)
-
-            cmd.meta["dest"] = str(copy_to)
-        except Exception as e:
-            raise ExecutionError(f'Error during copying from {copy_from.name} to {copy_to.name}: {e}')
+                shutil.copy(src, dst)
+        cmd.meta["dest"] = str(dst)
 
     def undo(self, cmd: ParsedCommand, ctx: Context) -> None:
         rm = Rm()
@@ -59,8 +53,7 @@ class Cp(Command):
 
         rm.execute(rm_cmd, ctx)
 
-
-class Mv(Command):
+class Mv(FileSystemCommand):
     """Moves file from source to destination
     - Undo moves the files from destination to source (Calls Mv)     
     """
@@ -72,24 +65,20 @@ class Mv(Command):
         if move_to.is_dir() and move_from.name != move_to.name and not move_from.is_dir():
             move_to = move_to / move_from.name
 
-        if (move_from.is_dir()
-            and not has_flag(cmd, 'r', 'recursive')
-            and any(move_from.iterdir())
-            ):
-            raise ExecutionError("Unable to move non-empty directories without '--recursive' tag.")
+        self.ensure_exists(move_from)
+        self.ensure_recursive(move_from, cmd)
 
-        if not move_from.exists():
-            raise ExecutionError(f"File doesn't exist. ({move_from})")
-        try:
-            logger.warning(f"Moving {move_from} → {move_to}")
-            if hasattr(move_from, 'move'):
-                move_from.move(move_to)
-            else:
-                shutil.move(move_from, move_to)
-            cmd.meta['src'] = str(move_from)
-            cmd.meta['dest'] = str(move_to)
-        except Exception as e:
-            raise ExecutionError(f'Error during moving from {move_from.name} to {move_to.name}: {e}')
+        logger.warning(f"Moving {move_from} → {move_to}")
+        self.safe_exec(self.move_file, move_from, move_to, cmd,
+                       msg = f'Error during moving from {move_from.name} to {move_to.name}')
+    
+    def move_file(src:Path, dst:Path, cmd:ParsedCommand):
+        if hasattr(src, 'move'):
+            src.move(dst)
+        else:
+            shutil.move(src, dst)
+        cmd.meta['src'] = str(src)
+        cmd.meta['dest'] = str(dst)
 
     def undo(self, cmd: ParsedCommand, ctx: Context) -> None:
             mv_cmd = ParsedCommand(
@@ -100,7 +89,7 @@ class Mv(Command):
             )
             self.execute(mv_cmd, ctx)
 
-class Rm(Command):
+class Rm(FileSystemCommand):
     """Removes source file and moves it to trash
 
     It is assigned a {trash_id}_{target.name} in trash, 
@@ -114,15 +103,9 @@ class Rm(Command):
         non_interactive: bool = bool(cmd.meta.get("non_interactive", False))
         fully_remove: bool = bool(cmd.meta.get("fully_remove", False))
 
-        if (target.is_dir()
-            and not has_flag(cmd, 'r', 'recursive')
-            and any(target.iterdir())
-            ):
-            raise ExecutionError("Unable to remove non-empty directories without '--recursive' tag.")
-
-        if not target.exists():
-            raise ExecutionError(f"File doesn't exist. ({target})")
-
+        self.ensure_exists(target)
+        self.ensure_recursive(target, cmd)
+        
         agreed = None
         if non_interactive:
             agreed = True
@@ -136,7 +119,10 @@ class Rm(Command):
                     agreed = False
                     return
 
-        try:
+        self.safe_exec(self.remove_file, target, cmd, fully_remove,
+                       msg = f"Couldn't remove {target.name}")
+
+    def remove_file(target:Path, cmd:ParsedCommand, fully_remove:bool):
             if fully_remove:
                 if target.is_dir():
                     shutil.rmtree(target)
@@ -150,9 +136,6 @@ class Rm(Command):
             cmd.meta["original_path"] = str(target)
             cmd.meta["trash_id"] = trash_id
             target.rename(trash_path)
-
-        except PermissionError:
-            raise ExecutionError(f"No permission to remove {target.name}")
 
     def undo(self, cmd: ParsedCommand, ctx: Context) -> None:
             src = Path(cmd.meta['original_path'])

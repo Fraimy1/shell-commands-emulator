@@ -51,3 +51,14 @@ class Command:
         except Exception as e:
             logger.exception(e)
             raise ExecutionError(f"{msg}: {e}")
+        
+class ArchiveCommand(Command):
+    """An interface for archive-related commands"""
+
+    def ensure_zip(self, path:Path):
+        if not path.name.endswith('.zip'):
+            raise ExecutionError(f"Destination must be a .zip file. But got {path.name}")
+        
+    def ensure_tar(self, path:Path):
+        if not path.name.endswith('.tar'):
+            raise ExecutionError(f"Destination must be a .tar file. But got {path.name}")

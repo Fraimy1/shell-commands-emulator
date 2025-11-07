@@ -4,31 +4,25 @@ import zipfile
 import tarfile
 import logging
 
-from src.commands.base import Command
+from src.commands.base import ArchiveCommand
 from src.utils.path_utils import resolve_path
-from src.core.errors import ExecutionError
 
 logger = logging.getLogger(__name__)
 
-class Zip(Command):
+class Zip(ArchiveCommand):
     """Compress directory/file into .zip file"""
     
     def execute(self, cmd, ctx):
         src = resolve_path(cmd.positionals[0], ctx)
         dest = resolve_path(cmd.positionals[1], ctx)
 
-        if not dest.name.endswith('.zip'):
-            raise ExecutionError(f"Destination must be a .zip file. But got {dest.name}")
+        self.ensure_exists(src)
+        self.ensure_dir(src)
+        self.ensure_zip(dest)
 
-        if not src.exists():
-            raise ExecutionError(f"File doesn't exist. ({src})")
-
-        try:
-            logger.info(f"Archiving {src} -> {dest}")
-            self.zip_dir(src, dest)
-        except Exception as e:
-            raise ExecutionError(f'Error zipping the folder {src.name} into {dest.name}: {e}')
-
+        logger.info(f"Archiving {src} -> {dest}")
+        self.safe_exec(self.zip_dir, src, dest, 
+                       msg = f"Error zipping the folder {src.name} into {dest.name}")
 
     @staticmethod
     def zip_dir(folder: Path, dest: Path):
@@ -40,24 +34,19 @@ class Zip(Command):
             return super().undo(cmd, ctx)
 
 
-class Unzip(Command):
+class Unzip(ArchiveCommand):
     """Unzip .zip file to a directory"""
 
     def execute(self, cmd, ctx):
         src = resolve_path(cmd.positionals[0], ctx)
         dest_dir = ctx.cwd / src.name.replace('.zip', '')
 
-        if not src.name.endswith('.zip'):
-            raise ExecutionError(f"Source must be a .zip file. But got {src.name}")
+        self.ensure_exists(src)
+        self.ensure_zip(src)
 
-        if not src.exists():
-            raise ExecutionError(f"File doesn't exist. ({src})")
-
-        try:
-            logger.info(f"Unarchiving {src} -> {dest_dir}")
-            self.unzip_dir(src, dest_dir)
-        except Exception as e:
-            raise ExecutionError(f'Error unzipping the file {src.name} into {dest_dir.name}: {e}')
+        logger.info(f"Unarchiving {src} -> {dest_dir}")
+        self.safe_exec(self.unzip_dir, src,
+                        dest_dir, msg=f"Error unzipping the file {src.name} into {dest_dir.name}")
 
     @staticmethod
     def unzip_dir(zipfile: Path, dest_dir: Path):
@@ -68,25 +57,21 @@ class Unzip(Command):
             return super().undo(cmd, ctx)
 
 
-class Tar(Command):
+class Tar(ArchiveCommand):
     """Tar file/directory into a .tar file"""
 
     def execute(self, cmd, ctx):
         src = resolve_path(cmd.positionals[0], ctx)
         dest = resolve_path(cmd.positionals[1], ctx)
 
-        if not dest.name.endswith('.tar'):
-            raise ExecutionError(f"Destination must be a .tar file. But got {dest.name}")
+        self.ensure_exists(src)
+        self.ensure_dir(src)
+        self.ensure_tar(dest)
 
-        if not src.exists():
-            raise ExecutionError(f"File doesn't exist. ({src})")
-
-        try:
-            logger.info(f"Archiving {src} -> {dest}")
-            self.tar_dir(src, dest)
-        except Exception as e:
-            raise ExecutionError(f'Error tarring the folder {src.name} into {dest.name}: {e}')
-
+        logger.info(f"Archiving {src} -> {dest}")        
+        self.safe_exec(self.tar_dir, src, dest,
+                        msg = f'Error tarring the folder {src.name} into {dest.name}')
+        
     @staticmethod
     def tar_dir(folder: Path, dest: Path):
         with tarfile.open(dest, 'w:gz') as tarf:
@@ -96,24 +81,20 @@ class Tar(Command):
             return super().undo(cmd, ctx)
 
 
-class Untar(Command):
+class Untar(ArchiveCommand):
     """Untar .tar file to a directory"""
 
     def execute(self, cmd, ctx):
         src = resolve_path(cmd.positionals[0], ctx)
         dest_dir = ctx.cwd
 
-        if not src.name.endswith('.tar'):
-            raise ExecutionError(f"Source must be a .tar file. But got {src.name}")
+        self.ensure_exists(src)
+        self.ensure_tar(src)
 
-        if not src.exists():
-            raise ExecutionError(f"File doesn't exist. ({src})")
-
-        try:
-            logger.info(f"Unarchiving {src} -> {dest_dir}")
-            self.untar_dir(src, dest_dir)
-        except Exception as e:
-            raise ExecutionError(f'Error untarring the file {src.name} into {dest_dir.name}: {e}')
+        
+        logger.info(f"Unarchiving {src} -> {dest_dir}")
+        self.safe_exec(self.untar_dir, src, dest_dir,
+                       msg = f'Error untarring the file {src.name} into {dest_dir.name}')
 
     @staticmethod
     def untar_dir(src_tar: Path, dest_dir: Path):

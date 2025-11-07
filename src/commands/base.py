@@ -72,7 +72,7 @@ class FileSystemCommand(Command):
             and not has_flag(cmd, 'r', 'recursive')
             and any(path.iterdir())
             ):
-            raise ExecutionError("Unable to copy non-empty directories without --recursive/-r tag.")
+            raise ExecutionError("Unable to work with non-empty directories without --recursive/-r tag.")
         
 class SearchCommand(FileSystemCommand):
     """

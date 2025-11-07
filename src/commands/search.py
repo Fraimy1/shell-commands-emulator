@@ -56,8 +56,8 @@ class Grep(SearchCommand):
         RED = Fore.RED + Style.BRIGHT
         RESET = Style.RESET_ALL
         
-        with path.open('r', encoding='utf-8') as f:
-
+        with path.open('r', encoding='utf-8', errors="ignore") as f:
+            
             for line_num, line in enumerate(f, start=1):
                 found = re.search(pattern, line)
                 if found:

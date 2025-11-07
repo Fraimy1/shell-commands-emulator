@@ -1,5 +1,11 @@
 from src.core.models import ParsedCommand
 from src.core.services import Context
+from src.core.errors import ExecutionError
+from pathlib import Path
+from src.utils.path_utils import resolve_path
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Command:
     """An interface that all Commands must follow"""
@@ -11,3 +17,37 @@ class Command:
     def undo(self, cmd: ParsedCommand, ctx: Context):
         """If implemented, undos the operation. Called only from Undo class"""
         raise NotImplementedError(f"Undo not supported for {self.__class__.__name__}")
+
+    # Helper shared functions
+
+    def resolve(self, path_str: str, ctx) -> Path:
+        """Resolve path safely within context."""
+        return resolve_path(path_str, ctx)
+
+    def ensure_exists(self, path: Path):
+        """Raise ExecutionError if path doesn't exist."""
+        if not path.exists():
+            logger.debug(f"File or directory not found: {path}")
+            raise ExecutionError(f"File or directory not found: {path}")
+
+    def ensure_dir(self, path: Path):
+        """Raise ExecutionError if path is not a directory."""
+        if not path.is_dir():
+            logger.debug(f"Expected directory, got: {path}")
+            raise ExecutionError(f"Expected directory, got: {path}")
+
+    def ensure_file(self, path: Path):
+        """Raise ExecutionError if path is not a file."""
+        if not path.is_file():
+            logger.debug(f"Expected file, got: {path}")
+            raise ExecutionError(f"Expected file, got: {path}")
+
+    def safe_exec(self, func, *args, msg: str = "Execution failed", **kwargs):
+        """Wrapper to handle common exceptions."""
+        try:
+            return func(*args, **kwargs)
+        except ExecutionError:
+            raise
+        except Exception as e:
+            logger.exception(e)
+            raise ExecutionError(f"{msg}: {e}")

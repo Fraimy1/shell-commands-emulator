@@ -91,7 +91,6 @@ class Untar(ArchiveCommand):
         self.ensure_exists(src)
         self.ensure_tar(src)
 
-        
         logger.info(f"Unarchiving {src} -> {dest_dir}")
         self.safe_exec(self.untar_dir, src, dest_dir,
                        msg = f'Error untarring the file {src.name} into {dest_dir.name}')

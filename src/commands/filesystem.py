@@ -6,7 +6,6 @@ import logging
 from src.commands.base import FileSystemCommand
 from src.config import TRASH_DIR
 from src.utils.path_utils import resolve_path
-from src.core.errors import ExecutionError
 from src.core.models import ParsedCommand
 from src.core.services import Context
 

@@ -9,8 +9,32 @@ LOGS_FILE = ROOT / "logs" / LOGS_FILENAME
 HISTORY_FILE = ROOT / ".history.json"
 TRASH_DIR = ROOT / ".trash"
 
-USER_WELCOME_MESSAGE = ""
-USER_GOODBYE_MESSAGE = ""
+USER_WELCOME_MESSAGE = """Welcome to the shell!
+========================
+Available commands:
+========================
+- ls [path] -l
+- cd <path>
+- cat <file>
+- cp <source> <dest> -r
+- mv <source> <dest> -r
+- rm <path> -r
+- zip <folder> <archive.zip>
+- unzip <archive.zip>
+- tar <folder> <archive.tar>
+- untar <archive.tar>
+- grep <pattern> <path> -i -r
+- history 
+- undo 
+
+Type 'exit' to exit shell.
+========================
+"""
+USER_GOODBYE_MESSAGE = """
+========================
+See you next time!
+========================
+"""
 
 CONSOLE_LOG_LEVEL = logging.INFO
 FILE_LOG_LEVEL = logging.DEBUG

@@ -19,10 +19,10 @@ def pc(name, flags=None, pos=None, raw="", meta=None):
 def ctx(tmp_path, monkeypatch):
     c = Context()
     c.cwd = tmp_path
-    c.history = []
     trash = tmp_path / ".trash"
     trash.mkdir(exist_ok=True)
     monkeypatch.setattr(filesystem_mod, "TRASH_DIR", trash, raising=False)
+    c.trash_dir = trash
     return c
 
 def strip_ansi(s: str) -> str:

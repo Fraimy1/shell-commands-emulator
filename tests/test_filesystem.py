@@ -56,7 +56,6 @@ def test_rm_to_trash(tmp_path, ctx, monkeypatch):
     f.write_text("x")
     monkeypatch.setattr("builtins.input", lambda _: "y")
     Rm().execute(pc("rm", pos=[str(f)]), ctx)
-    trash = getattr(__import__("src.commands.filesystem", fromlist=["*"]), "TRASH_DIR")
-    names = [p.name for p in trash.iterdir()]
+    names = [p.name for p in ctx.trash_dir.iterdir()]
     assert any(re.match(r"\d+_t2\.txt$", n) for n in names)
     assert not f.exists()

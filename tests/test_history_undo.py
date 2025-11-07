@@ -42,8 +42,7 @@ def test_undo_rm(tmp_path, ctx):
     f.write_text("1")
     cmd = pc("rm", pos=[str(f)], meta={"non_interactive": True})
     Rm().execute(cmd, ctx)
-    import src.commands.filesystem as fs
-    assert any(p.name.endswith("_rmme.txt") for p in fs.TRASH_DIR.iterdir())
+    assert any(p.name.endswith("_rmme.txt") for p in ctx.trash_dir.iterdir())
     ctx.history.append(_mk_entry(cmd, ctx, eid=202))
     Undo().execute(pc("undo"), ctx)
     assert f.exists()

@@ -73,3 +73,11 @@ class FileSystemCommand(Command):
             and any(path.iterdir())
             ):
             raise ExecutionError("Unable to copy non-empty directories without --recursive/-r tag.")
+        
+class SearchCommand(FileSystemCommand):
+    """
+    An interface for search-related commands
+    
+    Uses FileSystemCommand because it also needs ensure_recursive
+    """
+    ...

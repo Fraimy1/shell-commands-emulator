@@ -40,6 +40,7 @@ class Ls(Command):
 
             print(tabulate(data, headers=headers, tablefmt='plain'))
 
+    @staticmethod
     def get_file_stats(entry:Path):
         info = entry.stat()
         permissions = stat.filemode(info.st_mode)[1:]
@@ -73,7 +74,8 @@ class Cat(Command):
         self.ensure_file(target)
 
         self.safe_exec(self.read_file, target, msg=f"cat can't read this file. ({target})")
-        
+    
+    @staticmethod
     def read_file(path:Path):
         with open(path, 'r') as f:
                     print(f.read())

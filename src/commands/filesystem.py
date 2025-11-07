@@ -27,6 +27,7 @@ class Cp(FileSystemCommand):
         self.safe_exec(self.copy_file, copy_from, copy_to, cmd,
                        msg = f'Error during copying from {copy_from.name} to {copy_to.name}')
 
+    @staticmethod
     def copy_file(src:Path, dst:Path, cmd:ParsedCommand):
         if hasattr(src, 'copy'):
             src.copy(dst)
@@ -71,6 +72,7 @@ class Mv(FileSystemCommand):
         self.safe_exec(self.move_file, move_from, move_to, cmd,
                        msg = f'Error during moving from {move_from.name} to {move_to.name}')
     
+    @staticmethod
     def move_file(src:Path, dst:Path, cmd:ParsedCommand):
         if hasattr(src, 'move'):
             src.move(dst)
@@ -121,6 +123,7 @@ class Rm(FileSystemCommand):
         self.safe_exec(self.remove_file, target, cmd, fully_remove,
                        msg = f"Couldn't remove {target.name}")
 
+    @staticmethod
     def remove_file(target:Path, cmd:ParsedCommand, fully_remove:bool):
             if fully_remove:
                 if target.is_dir():

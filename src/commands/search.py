@@ -49,6 +49,7 @@ class Grep(SearchCommand):
             self.safe_exec(self.print_lines, path, pattern, display_path, 
                             msg = f"Failed to read file {path.name}")
 
+    @staticmethod
     def print_lines(path:Path, pattern:re.Pattern, display_path:Path):
         GREEN = Fore.GREEN + Style.BRIGHT
         YELLOW = Fore.YELLOW + Style.BRIGHT

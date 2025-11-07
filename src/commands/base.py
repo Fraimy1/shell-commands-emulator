@@ -78,6 +78,6 @@ class SearchCommand(FileSystemCommand):
     """
     An interface for search-related commands
     
-    Uses FileSystemCommand because it also needs ensure_recursive
+    Uses FileSystemCommand as parent because it also needs ensure_recursive
     """
     ...

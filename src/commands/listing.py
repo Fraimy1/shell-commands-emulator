@@ -20,8 +20,8 @@ class Ls(Command):
         directory = resolve_path(cmd.positionals[0], ctx) if cmd.positionals else ctx.cwd
         long = has_flag(cmd, 'l', 'long')
 
-        self.ensure_exists()
-        self.ensure_dir()
+        self.ensure_exists(directory)
+        self.ensure_dir(directory)
         
         data = []
         logger.debug(f"Listing directory: {directory}")
@@ -69,8 +69,8 @@ class Cat(Command):
     def execute(self, cmd, ctx):
         target = resolve_path(cmd.positionals[0], ctx)
 
-        self.ensure_exists()
-        self.ensure_file()
+        self.ensure_exists(target)
+        self.ensure_file(target)
 
         self.safe_exec(self.read_file, target, msg=f"cat can't read this file. ({target})")
         

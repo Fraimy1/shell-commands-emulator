@@ -3,7 +3,7 @@ import shutil
 import time
 import logging
 
-from src.commands.base import FileSystemCommand
+from src.commands.base import FileSystemCommand, RmCommand
 from src.config import TRASH_DIR
 from src.utils.path_utils import resolve_path
 from src.core.models import ParsedCommand
@@ -90,7 +90,7 @@ class Mv(FileSystemCommand):
             )
             self.execute(mv_cmd, ctx)
 
-class Rm(FileSystemCommand):
+class Rm(RmCommand):
     """Removes source file and moves it to trash
 
     It is assigned a {trash_id}_{target.name} in trash, 
@@ -105,6 +105,7 @@ class Rm(FileSystemCommand):
         fully_remove: bool = bool(cmd.meta.get("fully_remove", False))
 
         self.ensure_exists(target)
+        self.ensure_not_home_dir(target)
         self.ensure_recursive(target, cmd)
         
         agreed = None

@@ -1,10 +1,12 @@
+from pathlib import Path
+import logging
+
 from src.core.models import ParsedCommand
 from src.core.services import Context
 from src.core.errors import ExecutionError
-from pathlib import Path
 from src.utils.path_utils import resolve_path
 from src.utils.misc_utils import has_flag
-import logging
+from src.config import HOME_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +75,15 @@ class FileSystemCommand(Command):
             and any(path.iterdir())
             ):
             raise ExecutionError("Unable to work with non-empty directories without --recursive/-r tag.")
-        
+
+class RmCommand(FileSystemCommand):
+    """An interface for Rm-related commands"""
+    
+    @staticmethod
+    def ensure_not_home_dir(target:Path):
+        if target == HOME_DIR:
+            raise ExecutionError(f"Unable to remove home directory. ({target})")
+
 class SearchCommand(FileSystemCommand):
     """
     An interface for search-related commands

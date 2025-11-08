@@ -2,8 +2,6 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 
-import pytest
-
 import src.utils.misc_utils as misc_utils
 from src.core.models import HistoryEntry
 from src.core.services import Context

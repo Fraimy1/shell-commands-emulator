@@ -138,4 +138,3 @@ def test_setup_creates_history_file(monkeypatch, tmp_path):
 
     assert history_path.exists()
     assert history_path.read_text() == ""
-

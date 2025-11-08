@@ -9,13 +9,13 @@ repos:
           - types-PyYAML
           - types-colorama
           - types-tabulate
-
-
+        exclude: ^tests/
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.12.0
     hooks:
       - id: ruff-check
+        exclude: ^tests/
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0

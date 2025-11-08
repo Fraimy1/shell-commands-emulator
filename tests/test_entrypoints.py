@@ -64,4 +64,3 @@ def test_shell_executes_command_and_exits(monkeypatch, capsys, tmp_path):
     assert seen["prompts"] == ["ls"]
     assert seen["validated"] is True
     assert seen["dispatched"] == "ls"
-

@@ -13,13 +13,13 @@ logger = logging.getLogger(__name__)
 
 class Cp(FileSystemCommand):
     """Copies file from source to destination
-    - Undo removes the copy (Calls Rm)   
+    - Undo removes the copy (Calls Rm)
     """
-    
+
     def execute(self, cmd: ParsedCommand, ctx: Context) -> None:
         copy_from = resolve_path(cmd.positionals[0], ctx)
         copy_to = resolve_path(cmd.positionals[1], ctx)
-        
+
         self.ensure_exists(copy_from)
         self.ensure_recursive(copy_from, cmd)
 
@@ -55,9 +55,9 @@ class Cp(FileSystemCommand):
 
 class Mv(FileSystemCommand):
     """Moves file from source to destination
-    - Undo moves the files from destination to source (Calls Mv)     
+    - Undo moves the files from destination to source (Calls Mv)
     """
-    
+
     def execute(self, cmd: ParsedCommand, ctx: Context) -> None:
         move_from = resolve_path(cmd.positionals[0], ctx)
         move_to = resolve_path(cmd.positionals[1], ctx)
@@ -71,7 +71,7 @@ class Mv(FileSystemCommand):
         logger.warning(f"Moving {move_from} → {move_to}")
         self.safe_exec(self.move_file, move_from, move_to, cmd,
                        msg = f'Error during moving from {move_from.name} to {move_to.name}')
-    
+
     @staticmethod
     def move_file(src:Path, dst:Path, cmd:ParsedCommand):
         if hasattr(src, 'move'):
@@ -93,12 +93,12 @@ class Mv(FileSystemCommand):
 class Rm(RmCommand):
     """Removes source file and moves it to trash
 
-    It is assigned a {trash_id}_{target.name} in trash, 
+    It is assigned a {trash_id}_{target.name} in trash,
     so it can be moved back to source for Undo
-    
+
     - undo moves from trash back to source (calls Mv)
     """
-    
+
     def execute(self, cmd: ParsedCommand, ctx: Context) -> None:
         target = resolve_path(cmd.positionals[0], ctx)
         non_interactive: bool = bool(cmd.meta.get("non_interactive", False))
@@ -107,7 +107,7 @@ class Rm(RmCommand):
         self.ensure_exists(target)
         self.ensure_not_home_dir(target)
         self.ensure_recursive(target, cmd)
-        
+
         agreed = None
         if non_interactive:
             agreed = True

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class Zip(ArchiveCommand):
     """Compress directory/file into .zip file"""
-    
+
     def execute(self, cmd, ctx):
         src = resolve_path(cmd.positionals[0], ctx)
         dest = resolve_path(cmd.positionals[1], ctx)
@@ -21,7 +21,7 @@ class Zip(ArchiveCommand):
         self.ensure_zip(dest)
 
         logger.info(f"Archiving {src} -> {dest}")
-        self.safe_exec(self.zip_dir, src, dest, 
+        self.safe_exec(self.zip_dir, src, dest,
                        msg = f"Error zipping the folder {src.name} into {dest.name}")
 
     @staticmethod
@@ -68,10 +68,10 @@ class Tar(ArchiveCommand):
         self.ensure_dir(src)
         self.ensure_tar(dest)
 
-        logger.info(f"Archiving {src} -> {dest}")        
+        logger.info(f"Archiving {src} -> {dest}")
         self.safe_exec(self.tar_dir, src, dest,
                         msg = f'Error tarring the folder {src.name} into {dest.name}')
-        
+
     @staticmethod
     def tar_dir(folder: Path, dest: Path):
         with tarfile.open(dest, 'w:gz') as tarf:

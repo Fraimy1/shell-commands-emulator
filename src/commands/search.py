@@ -10,12 +10,12 @@ from src.utils.misc_utils import has_flag
 logger = logging.getLogger(__name__)
 
 class Grep(SearchCommand):
-    """Returns all lines of the file matching pattern 
-    
+    """Returns all lines of the file matching pattern
+
     --recursive/-r - to look inside folder
     --ignore-case/-i - to ignore case when matching pattern
     """
-    
+
     def execute(self, cmd, ctx):
         pattern_raw = cmd.positionals[0]
         path = resolve_path(cmd.positionals[1], ctx)
@@ -41,12 +41,12 @@ class Grep(SearchCommand):
     def grep_file(self, pattern:re.Pattern, path:Path, ignore_open_errors:bool, display_path:Path):
         if ignore_open_errors:
             try:
-                self.safe_exec(self.print_lines, path, pattern, display_path, 
+                self.safe_exec(self.print_lines, path, pattern, display_path,
                             msg = f"Failed to read file {path.name}")
             except Exception:
                 pass
         else:
-            self.safe_exec(self.print_lines, path, pattern, display_path, 
+            self.safe_exec(self.print_lines, path, pattern, display_path,
                             msg = f"Failed to read file {path.name}")
 
     @staticmethod
@@ -55,9 +55,9 @@ class Grep(SearchCommand):
         YELLOW = Fore.YELLOW + Style.BRIGHT
         RED = Fore.RED + Style.BRIGHT
         RESET = Style.RESET_ALL
-        
+
         with path.open('r', encoding='utf-8', errors="ignore") as f:
-            
+
             for line_num, line in enumerate(f, start=1):
                 found = re.search(pattern, line)
                 if found:

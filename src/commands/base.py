@@ -52,18 +52,18 @@ class Command:
         except Exception as e:
             logger.exception(e)
             raise ExecutionError(f"{msg}: {e}")
-        
+
 class ArchiveCommand(Command):
     """An interface for archive-related commands"""
 
     def ensure_zip(self, path:Path):
         if not path.name.endswith('.zip'):
             raise ExecutionError(f"Destination must be a .zip file. But got {path.name}")
-        
+
     def ensure_tar(self, path:Path):
         if not path.name.endswith('.tar'):
             raise ExecutionError(f"Destination must be a .tar file. But got {path.name}")
-        
+
 class FileSystemCommand(Command):
     """An interface for filesystem-related commands"""
 
@@ -73,11 +73,11 @@ class FileSystemCommand(Command):
             and any(path.iterdir())
             ):
             raise ExecutionError("Unable to work with non-empty directories without --recursive/-r tag.")
-        
+
 class SearchCommand(FileSystemCommand):
     """
     An interface for search-related commands
-    
+
     Uses FileSystemCommand as parent because it also needs ensure_recursive
     """
     ...

@@ -24,8 +24,8 @@ Available commands:
 - tar <folder> <archive.tar>
 - untar <archive.tar>
 - grep <pattern> <path> -i -r
-- history 
-- undo 
+- history
+- undo
 
 Type 'exit' to exit shell.
 ========================

@@ -5,7 +5,6 @@ import tarfile
 import logging
 
 from src.commands.base import ArchiveCommand
-from src.utils.path_utils import resolve_path
 
 logger = logging.getLogger(__name__)
 
@@ -13,8 +12,8 @@ class Zip(ArchiveCommand):
     """Compress directory/file into .zip file"""
 
     def execute(self, cmd, ctx):
-        src = resolve_path(cmd.positionals[0], ctx)
-        dest = resolve_path(cmd.positionals[1], ctx)
+        src = self.resolve(cmd.positionals[0], ctx)
+        dest = self.resolve(cmd.positionals[1], ctx)
 
         self.ensure_exists(src)
         self.ensure_dir(src)
@@ -38,7 +37,7 @@ class Unzip(ArchiveCommand):
     """Unzip .zip file to a directory"""
 
     def execute(self, cmd, ctx):
-        src = resolve_path(cmd.positionals[0], ctx)
+        src = self.resolve(cmd.positionals[0], ctx)
         dest_dir = ctx.cwd / src.name.replace('.zip', '')
 
         self.ensure_exists(src)
@@ -61,8 +60,8 @@ class Tar(ArchiveCommand):
     """Tar file/directory into a .tar file"""
 
     def execute(self, cmd, ctx):
-        src = resolve_path(cmd.positionals[0], ctx)
-        dest = resolve_path(cmd.positionals[1], ctx)
+        src = self.resolve(cmd.positionals[0], ctx)
+        dest = self.resolve(cmd.positionals[1], ctx)
 
         self.ensure_exists(src)
         self.ensure_dir(src)
@@ -85,7 +84,7 @@ class Untar(ArchiveCommand):
     """Untar .tar file to a directory"""
 
     def execute(self, cmd, ctx):
-        src = resolve_path(cmd.positionals[0], ctx)
+        src = self.resolve(cmd.positionals[0], ctx)
         dest_dir = ctx.cwd
 
         self.ensure_exists(src)

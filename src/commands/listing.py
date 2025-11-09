@@ -5,7 +5,6 @@ import stat
 import logging
 
 from src.commands.base import Command
-from src.utils.path_utils import resolve_path
 from src.utils.misc_utils import has_flag
 
 logger = logging.getLogger(__name__)
@@ -17,7 +16,7 @@ class Ls(Command):
     """
 
     def execute(self, cmd, ctx):
-        directory = resolve_path(cmd.positionals[0], ctx) if cmd.positionals else ctx.cwd
+        directory = self.resolve(cmd.positionals[0], ctx) if cmd.positionals else ctx.cwd
         long = has_flag(cmd, 'l', 'long')
 
         self.ensure_exists(directory)
@@ -68,7 +67,7 @@ class Cat(Command):
     """Reads contents of the file"""
 
     def execute(self, cmd, ctx):
-        target = resolve_path(cmd.positionals[0], ctx)
+        target = self.resolve(cmd.positionals[0], ctx)
 
         self.ensure_exists(target)
         self.ensure_file(target)

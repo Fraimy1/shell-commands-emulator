@@ -5,7 +5,6 @@ import logging
 
 from src.commands.base import FileSystemCommand, RmCommand
 from src.config import TRASH_DIR
-from src.utils.path_utils import resolve_path
 from src.core.models import ParsedCommand
 from src.core.services import Context
 
@@ -17,8 +16,8 @@ class Cp(FileSystemCommand):
     """
 
     def execute(self, cmd: ParsedCommand, ctx: Context) -> None:
-        copy_from = resolve_path(cmd.positionals[0], ctx)
-        copy_to = resolve_path(cmd.positionals[1], ctx)
+        copy_from = self.resolve(cmd.positionals[0], ctx)
+        copy_to = self.resolve(cmd.positionals[1], ctx)
 
         self.ensure_exists(copy_from)
         self.ensure_recursive(copy_from, cmd)
@@ -59,8 +58,8 @@ class Mv(FileSystemCommand):
     """
 
     def execute(self, cmd: ParsedCommand, ctx: Context) -> None:
-        move_from = resolve_path(cmd.positionals[0], ctx)
-        move_to = resolve_path(cmd.positionals[1], ctx)
+        move_from = self.resolve(cmd.positionals[0], ctx)
+        move_to = self.resolve(cmd.positionals[1], ctx)
 
         if move_to.is_dir() and move_from.name != move_to.name and not move_from.is_dir():
             move_to = move_to / move_from.name
@@ -100,7 +99,7 @@ class Rm(RmCommand):
     """
 
     def execute(self, cmd: ParsedCommand, ctx: Context) -> None:
-        target = resolve_path(cmd.positionals[0], ctx)
+        target = self.resolve(cmd.positionals[0], ctx)
         non_interactive: bool = bool(cmd.meta.get("non_interactive", False))
         fully_remove: bool = bool(cmd.meta.get("fully_remove", False))
 

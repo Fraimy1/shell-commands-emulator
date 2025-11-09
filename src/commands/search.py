@@ -4,7 +4,6 @@ import logging
 from colorama import Fore, Style
 
 from src.commands.base import SearchCommand
-from src.utils.path_utils import resolve_path
 from src.utils.misc_utils import has_flag
 
 logger = logging.getLogger(__name__)
@@ -18,7 +17,7 @@ class Grep(SearchCommand):
 
     def execute(self, cmd, ctx):
         pattern_raw = cmd.positionals[0]
-        path = resolve_path(cmd.positionals[1], ctx)
+        path = self.resolve(cmd.positionals[1], ctx)
         case_insensitive = has_flag(cmd, 'i', 'ignore-case')
 
         self.ensure_exists(path)

@@ -57,7 +57,14 @@ python -m src.main
 
 ## Docker
 
-### Запуск контейнера
+### Pull из Docker Hub
+
+```bash
+docker pull blaze698/minishell:latest
+docker run --rm -it blaze698/minishell:latest
+```
+
+### Запуск контейнера (через Dockerfile)
 
 ```bash
 docker run --rm -it blaze698/minishell:latest
@@ -75,7 +82,9 @@ docker run --rm -it -v ${PWD}:/app blaze698/minishell:latest
 
 ```bash
 docker build -t minishell .
+docker run --rm -it minishell
 ```
+
 
 
 ## Структура проекта

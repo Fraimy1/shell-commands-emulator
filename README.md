@@ -55,6 +55,29 @@ pip install -r requirements.txt
 python -m src.main
 ```
 
+## Docker
+
+### Запуск контейнера
+
+```bash
+docker run --rm -it blaze698/minishell:latest
+```
+
+### Использование bind mount (режим разработки)
+
+```powershell
+docker run --rm -it -v ${PWD}:/app blaze698/minishell:latest
+```
+
+Изменения в коде сразу видны в контейнере.
+
+### Сборка вручную
+
+```bash
+docker build -t minishell .
+```
+
+
 ## Структура проекта
 
 ```

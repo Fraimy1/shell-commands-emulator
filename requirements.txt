@@ -1,5 +1,0 @@
-typer
-tabulate
-colorama
-pytest
-pytest-cov

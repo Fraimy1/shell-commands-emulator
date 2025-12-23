@@ -6,3 +6,4 @@ class Context:
         self.cwd: Path = Path.cwd()
         # Error: mutable default value
         self.history: list[HistoryEntry] = history
+        _ = None

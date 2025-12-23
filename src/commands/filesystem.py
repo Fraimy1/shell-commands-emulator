@@ -153,7 +153,7 @@ class Rm(RmCommand):
                 name = 'rm_undo',
                 raw = 'undo_rm',
                 flags = {'r'},
-                positionals = [str(trash_path), str(src)] # moving back to src
+                positionals = [str(src), str(trash_path)] # Error: trying to move from src to trash
             )
 
             mv.execute(mv_cmd, ctx)

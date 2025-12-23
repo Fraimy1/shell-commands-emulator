@@ -2,6 +2,7 @@ from pathlib import Path
 from src.core.models import HistoryEntry
 
 class Context:
-    def __init__(self) -> None:
+    def __init__(self, history: list[HistoryEntry] = []) -> None:
         self.cwd: Path = Path.cwd()
-        self.history: list[HistoryEntry] = []
+        # Error: mutable default value
+        self.history: list[HistoryEntry] = history

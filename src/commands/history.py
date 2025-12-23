@@ -55,7 +55,7 @@ class Undo(Command):
     """
     def execute(self, cmd, ctx):
         # Find the last undoable operation
-        for i in range(len(ctx.history) - 1, -1, -1):
+        for i in range(len(ctx.history) - 1, 0, -1): # Off by one error            
             entry = ctx.history[i]
 
             if entry.name in UNDOABLE_OPERATIONS:

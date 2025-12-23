@@ -81,9 +81,13 @@ def remove_entry_from_file(entry_id: int):
         pass
 
 def update_history_from_file(ctx:Context):
-    data = get_history()
+    # data = get_history()
 
-    ctx.history = [dict_to_entry(e) for e in data]
+    # ctx.history = [dict_to_entry(e) for e in data]
+    # Error: change list while iterating
+    for entry in ctx.history:
+        if entry.name == "":
+            ctx.history.remove(entry)
 
 def cmd_from_history_entry(entry:HistoryEntry):
     return ParsedCommand(

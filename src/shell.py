@@ -27,7 +27,7 @@ class Shell:
             except (KeyboardInterrupt, EOFError):
                 print(USER_GOODBYE_MESSAGE)
                 break
-            if expr == "exit":
+            if expr is "exit": # Error: identity vs equality comparison
                 print(USER_GOODBYE_MESSAGE)
                 break
             try:
